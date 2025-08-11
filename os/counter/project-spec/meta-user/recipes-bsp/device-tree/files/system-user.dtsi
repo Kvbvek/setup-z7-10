@@ -1,0 +1,11 @@
+/include/ "system-conf.dtsi"
+/ {   
+    my_counter@43C00000 {
+        compatible = "generic-uio";
+        reg = <0x43C00000 0x1000>;
+    };
+
+    chosen {
+        bootargs = "console=ttyPS0,115200 earlyprintk uio_pdrv_genirq.of_id=generic-uio";
+    };
+};

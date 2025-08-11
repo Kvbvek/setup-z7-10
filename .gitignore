@@ -1,0 +1,42 @@
+# Pliki i katalogi generowane przez Vivado
+.Xil/
+.xil/
+*.jou
+*.log
+*.str
+*.xsa
+*.bit
+*.bin
+*.elf
+*.bin
+*.mem
+*.mcs
+*.bif
+_x/
+xsim.dir/
+*.wdb
+*.pb
+*.html
+vivado*.tcl
+
+# Pliki i katalogi generowane przez Vitis
+vitis_workspace/
+*.build_log
+*.vitis_log
+.metadata/
+.sdk/
+
+#-------------------------------------------
+# PetaLinux
+#-------------------------------------------
+
+# Pliki i katalogi generowane przez PetaLinux
+build/
+components/
+pre-built/
+images/
+project-spec/configs/
+*.bsp
+*.log
+
+*.txt
