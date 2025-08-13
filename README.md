@@ -5,6 +5,10 @@ Pierwszym etapem było stworzenie projektu sprzętowego.
 
 * Block Design: W projekcie Vivado stworzono diagram blokowy, zawierający standardowy ZYNQ7 Processing System (PS) oraz customowy IP. Połączenia zostały zrealizowane za pomocą magistrali AXI.
 
+Block design components:
+
+![Block design screenshot](https://i.imgur.com/palpOTp.png)
+
 * Generowanie Hardware: Po poprawnym połączeniu wszystkich komponentów, projekt został zwalidowany, a następnie wygenerowano HDL Wrapper i Bitstream. Na koniec wykonano eksport sprzętu w celu uzyskania pliku _.xsa_, który zawiera kompletną definicję układu.
 
 ## 2. Weryfikacja IP w Vitis
