@@ -7,7 +7,7 @@ import os
 
 UIO_DEVICE = "/dev/uio0"
 MAP_SIZE = 0x1000
-UDP_IP = ""  
+UDP_IP = "192.186.3.1" # przydzielony statyczny adres IP na pc
 UDP_PORT = 5005 
 
 def main():
