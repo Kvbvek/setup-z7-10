@@ -49,7 +49,6 @@ dma_wr(S2MM_DA, BUF_ADDR)
 transfer_len = 100 * 4
 dma_wr(S2MM_LENGTH, transfer_len)
 
-# Czekaj na zakończenie DMA
 print("Waiting for DMA...")
 while True:
     status = dma_rd(S2MM_DMASR)
