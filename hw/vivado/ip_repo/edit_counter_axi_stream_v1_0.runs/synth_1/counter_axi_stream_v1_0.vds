@@ -1,0 +1,221 @@
+#-----------------------------------------------------------
+# Vivado v2022.1 (64-bit)
+# SW Build 3526262 on Mon Apr 18 15:47:01 MDT 2022
+# IP Build 3524634 on Mon Apr 18 20:55:01 MDT 2022
+# Start of session at: Thu Aug 14 11:04:52 2025
+# Process ID: 8300
+# Current directory: /home/jakub/proj-zybo/setup-z7-10/hw/vivado/ip_repo/edit_counter_axi_stream_v1_0.runs/synth_1
+# Command line: vivado -log counter_axi_stream_v1_0.vds -product Vivado -mode batch -messageDb vivado.pb -notrace -source counter_axi_stream_v1_0.tcl
+# Log file: /home/jakub/proj-zybo/setup-z7-10/hw/vivado/ip_repo/edit_counter_axi_stream_v1_0.runs/synth_1/counter_axi_stream_v1_0.vds
+# Journal file: /home/jakub/proj-zybo/setup-z7-10/hw/vivado/ip_repo/edit_counter_axi_stream_v1_0.runs/synth_1/vivado.jou
+# Running On: jakub-B365-HD3, OS: Linux, CPU Frequency: 2900.000 MHz, CPU Physical cores: 6, Host memory: 16708 MB
+#-----------------------------------------------------------
+source counter_axi_stream_v1_0.tcl -notrace
+INFO: [IP_Flow 19-234] Refreshing IP repositories
+WARNING: [IP_Flow 19-3685] Ignored loading user repository '/home/jakub/proj-zybo/setup-z7-10/hw/vivado/ip_repo/counter_axi_stream_1.0'. The path is contained within another repository.
+INFO: [IP_Flow 19-1700] Loaded user IP repository '/home/jakub/proj-zybo/setup-z7-10/hw/vivado/ip_repo'.
+WARNING: [IP_Flow 19-3656] If you move the project, the path for repository '/home/jakub/proj-zybo/setup-z7-10/hw/vivado/ip_repo' may become invalid. A better location for the repository would be in a path adjacent to the project. (Current project location is '/home/jakub/proj-zybo/setup-z7-10/hw/vivado/ip_repo/edit_counter_axi_stream_v1_0.runs/synth_1'.)
+INFO: [IP_Flow 19-2313] Loaded Vivado IP repository '/tools/Xilinx/Vivado/2022.1/data/ip'.
+Command: synth_design -top counter_axi_stream_v1_0 -part xc7z010clg400-1
+Starting synth_design
+Attempting to get a license for feature 'Synthesis' and/or device 'xc7z010'
+INFO: [Common 17-349] Got license for feature 'Synthesis' and/or device 'xc7z010'
+INFO: [Synth 8-7079] Multithreading enabled for synth_design using a maximum of 4 processes.
+INFO: [Synth 8-7078] Launching helper process for spawning children vivado processes
+INFO: [Synth 8-7075] Helper process launched with PID 8339
+WARNING: [Synth 8-9887] parameter declaration becomes local in 'counter_axi_stream_v1_0_M00_AXIS' with formal parameter declaration list [/home/jakub/proj-zybo/setup-z7-10/hw/vivado/ip_repo/counter_axi_stream_1.0/hdl/counter_axi_stream_v1_0_M00_AXIS.v:63]
+---------------------------------------------------------------------------------
+Starting Synthesize : Time (s): cpu = 00:00:03 ; elapsed = 00:00:04 . Memory (MB): peak = 2705.062 ; gain = 0.000 ; free physical = 2443 ; free virtual = 6670
+---------------------------------------------------------------------------------
+INFO: [Synth 8-6157] synthesizing module 'counter_axi_stream_v1_0' [/home/jakub/proj-zybo/setup-z7-10/hw/vivado/ip_repo/counter_axi_stream_1.0/hdl/counter_axi_stream_v1_0.v:4]
+INFO: [Synth 8-6157] synthesizing module 'counter_axi_stream_v1_0_M00_AXIS' [/home/jakub/proj-zybo/setup-z7-10/hw/vivado/ip_repo/counter_axi_stream_1.0/hdl/counter_axi_stream_v1_0_M00_AXIS.v:4]
+	Parameter C_M_AXIS_TDATA_WIDTH bound to: 32 - type: integer 
+	Parameter C_M_START_COUNT bound to: 32 - type: integer 
+INFO: [Synth 8-155] case statement is not full and has no default [/home/jakub/proj-zybo/setup-z7-10/hw/vivado/ip_repo/counter_axi_stream_1.0/hdl/counter_axi_stream_v1_0_M00_AXIS.v:106]
+INFO: [Synth 8-6155] done synthesizing module 'counter_axi_stream_v1_0_M00_AXIS' (0#1) [/home/jakub/proj-zybo/setup-z7-10/hw/vivado/ip_repo/counter_axi_stream_1.0/hdl/counter_axi_stream_v1_0_M00_AXIS.v:4]
+INFO: [Synth 8-6155] done synthesizing module 'counter_axi_stream_v1_0' (0#1) [/home/jakub/proj-zybo/setup-z7-10/hw/vivado/ip_repo/counter_axi_stream_1.0/hdl/counter_axi_stream_v1_0.v:4]
+---------------------------------------------------------------------------------
+Finished Synthesize : Time (s): cpu = 00:00:05 ; elapsed = 00:00:06 . Memory (MB): peak = 2705.062 ; gain = 0.000 ; free physical = 3537 ; free virtual = 7770
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Constraint Validation : Time (s): cpu = 00:00:05 ; elapsed = 00:00:06 . Memory (MB): peak = 2705.062 ; gain = 0.000 ; free physical = 3538 ; free virtual = 7771
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Loading Part and Timing Information
+---------------------------------------------------------------------------------
+Loading part: xc7z010clg400-1
+---------------------------------------------------------------------------------
+Finished Loading Part and Timing Information : Time (s): cpu = 00:00:05 ; elapsed = 00:00:06 . Memory (MB): peak = 2713.066 ; gain = 8.004 ; free physical = 3537 ; free virtual = 7770
+---------------------------------------------------------------------------------
+INFO: [Device 21-403] Loading part xc7z010clg400-1
+INFO: [Synth 8-802] inferred FSM for state register 'mst_exec_state_reg' in module 'counter_axi_stream_v1_0_M00_AXIS'
+---------------------------------------------------------------------------------------------------
+                   State |                     New Encoding |                Previous Encoding 
+---------------------------------------------------------------------------------------------------
+                    IDLE |                               00 |                               00
+            INIT_COUNTER |                               01 |                               01
+             SEND_STREAM |                               10 |                               10
+---------------------------------------------------------------------------------------------------
+INFO: [Synth 8-3354] encoded FSM with state register 'mst_exec_state_reg' using encoding 'sequential' in module 'counter_axi_stream_v1_0_M00_AXIS'
+---------------------------------------------------------------------------------
+Finished RTL Optimization Phase 2 : Time (s): cpu = 00:00:05 ; elapsed = 00:00:07 . Memory (MB): peak = 2713.066 ; gain = 8.004 ; free physical = 3529 ; free virtual = 7767
+---------------------------------------------------------------------------------
+No constraint files found.
+---------------------------------------------------------------------------------
+Start RTL Component Statistics 
+---------------------------------------------------------------------------------
+Detailed RTL Component Info : 
++---Adders : 
+	   2 Input    5 Bit       Adders := 2     
+	   2 Input    4 Bit       Adders := 1     
++---Registers : 
+	               32 Bit    Registers := 1     
+	                5 Bit    Registers := 1     
+	                4 Bit    Registers := 1     
+	                1 Bit    Registers := 3     
++---Muxes : 
+	   3 Input    2 Bit        Muxes := 1     
+	   2 Input    2 Bit        Muxes := 2     
+	   2 Input    1 Bit        Muxes := 4     
+	   3 Input    1 Bit        Muxes := 2     
+---------------------------------------------------------------------------------
+Finished RTL Component Statistics 
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Part Resource Summary
+---------------------------------------------------------------------------------
+Part Resources:
+DSPs: 80 (col length:40)
+BRAMs: 120 (col length: RAMB18 40 RAMB36 20)
+---------------------------------------------------------------------------------
+Finished Part Resource Summary
+---------------------------------------------------------------------------------
+No constraint files found.
+---------------------------------------------------------------------------------
+Start Cross Boundary and Area Optimization
+---------------------------------------------------------------------------------
+WARNING: [Synth 8-7080] Parallel synthesis criteria is not met
+WARNING: [Synth 8-3917] design counter_axi_stream_v1_0 has port m00_axis_tstrb[3] driven by constant 1
+WARNING: [Synth 8-3917] design counter_axi_stream_v1_0 has port m00_axis_tstrb[2] driven by constant 1
+WARNING: [Synth 8-3917] design counter_axi_stream_v1_0 has port m00_axis_tstrb[1] driven by constant 1
+WARNING: [Synth 8-3917] design counter_axi_stream_v1_0 has port m00_axis_tstrb[0] driven by constant 1
+---------------------------------------------------------------------------------
+Finished Cross Boundary and Area Optimization : Time (s): cpu = 00:00:10 ; elapsed = 00:00:12 . Memory (MB): peak = 2713.066 ; gain = 8.004 ; free physical = 3213 ; free virtual = 7471
+---------------------------------------------------------------------------------
+No constraint files found.
+---------------------------------------------------------------------------------
+Start Timing Optimization
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Timing Optimization : Time (s): cpu = 00:00:10 ; elapsed = 00:00:12 . Memory (MB): peak = 2713.066 ; gain = 8.004 ; free physical = 3207 ; free virtual = 7466
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Technology Mapping
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Technology Mapping : Time (s): cpu = 00:00:10 ; elapsed = 00:00:13 . Memory (MB): peak = 2713.066 ; gain = 8.004 ; free physical = 3201 ; free virtual = 7461
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start IO Insertion
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Flattening Before IO Insertion
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Flattening Before IO Insertion
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Final Netlist Cleanup
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Final Netlist Cleanup
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished IO Insertion : Time (s): cpu = 00:00:13 ; elapsed = 00:00:16 . Memory (MB): peak = 2713.066 ; gain = 8.004 ; free physical = 3174 ; free virtual = 7431
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Renaming Generated Instances
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Renaming Generated Instances : Time (s): cpu = 00:00:13 ; elapsed = 00:00:16 . Memory (MB): peak = 2713.066 ; gain = 8.004 ; free physical = 3174 ; free virtual = 7431
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Rebuilding User Hierarchy
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Rebuilding User Hierarchy : Time (s): cpu = 00:00:13 ; elapsed = 00:00:16 . Memory (MB): peak = 2713.066 ; gain = 8.004 ; free physical = 3174 ; free virtual = 7431
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Renaming Generated Ports
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Renaming Generated Ports : Time (s): cpu = 00:00:13 ; elapsed = 00:00:16 . Memory (MB): peak = 2713.066 ; gain = 8.004 ; free physical = 3174 ; free virtual = 7431
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Handling Custom Attributes
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Handling Custom Attributes : Time (s): cpu = 00:00:13 ; elapsed = 00:00:16 . Memory (MB): peak = 2713.066 ; gain = 8.004 ; free physical = 3174 ; free virtual = 7431
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Renaming Generated Nets
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Renaming Generated Nets : Time (s): cpu = 00:00:13 ; elapsed = 00:00:16 . Memory (MB): peak = 2713.066 ; gain = 8.004 ; free physical = 3174 ; free virtual = 7431
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Writing Synthesis Report
+---------------------------------------------------------------------------------
+
+Report BlackBoxes: 
++-+--------------+----------+
+| |BlackBox name |Instances |
++-+--------------+----------+
++-+--------------+----------+
+
+Report Cell Usage: 
++------+-----+------+
+|      |Cell |Count |
++------+-----+------+
+|1     |BUFG |     1|
+|2     |LUT1 |     3|
+|3     |LUT2 |     2|
+|4     |LUT3 |     4|
+|5     |LUT4 |     6|
+|6     |LUT5 |     4|
+|7     |LUT6 |     1|
+|8     |FDRE |    17|
+|9     |FDSE |     1|
+|10    |IBUF |     3|
+|11    |OBUF |    38|
++------+-----+------+
+
+Report Instance Areas: 
++------+----------------------------------------+---------------------------------+------+
+|      |Instance                                |Module                           |Cells |
++------+----------------------------------------+---------------------------------+------+
+|1     |top                                     |                                 |    80|
+|2     |  counter_axi_stream_v1_0_M00_AXIS_inst |counter_axi_stream_v1_0_M00_AXIS |    38|
++------+----------------------------------------+---------------------------------+------+
+---------------------------------------------------------------------------------
+Finished Writing Synthesis Report : Time (s): cpu = 00:00:13 ; elapsed = 00:00:16 . Memory (MB): peak = 2713.066 ; gain = 8.004 ; free physical = 3174 ; free virtual = 7431
+---------------------------------------------------------------------------------
+Synthesis finished with 0 errors, 0 critical warnings and 6 warnings.
+Synthesis Optimization Runtime : Time (s): cpu = 00:00:13 ; elapsed = 00:00:16 . Memory (MB): peak = 2713.066 ; gain = 8.004 ; free physical = 3185 ; free virtual = 7442
+Synthesis Optimization Complete : Time (s): cpu = 00:00:13 ; elapsed = 00:00:16 . Memory (MB): peak = 2713.074 ; gain = 8.004 ; free physical = 3185 ; free virtual = 7442
+INFO: [Project 1-571] Translating synthesized netlist
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00 . Memory (MB): peak = 2713.074 ; gain = 0.000 ; free physical = 3166 ; free virtual = 7426
+INFO: [Project 1-570] Preparing netlist for logic optimization
+INFO: [Opt 31-138] Pushed 0 inverter(s) to 0 load pin(s).
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00 . Memory (MB): peak = 2753.086 ; gain = 0.000 ; free physical = 3157 ; free virtual = 7434
+INFO: [Project 1-111] Unisim Transformation Summary:
+No Unisim elements were transformed.
+
+Synth Design complete, checksum: ad2926c6
+INFO: [Common 17-83] Releasing license: Synthesis
+20 Infos, 8 Warnings, 0 Critical Warnings and 0 Errors encountered.
+synth_design completed successfully
+synth_design: Time (s): cpu = 00:00:19 ; elapsed = 00:00:18 . Memory (MB): peak = 2753.086 ; gain = 48.023 ; free physical = 3363 ; free virtual = 7640
+INFO: [Common 17-1381] The checkpoint '/home/jakub/proj-zybo/setup-z7-10/hw/vivado/ip_repo/edit_counter_axi_stream_v1_0.runs/synth_1/counter_axi_stream_v1_0.dcp' has been generated.
+INFO: [runtcl-4] Executing : report_utilization -file counter_axi_stream_v1_0_utilization_synth.rpt -pb counter_axi_stream_v1_0_utilization_synth.pb
+INFO: [Common 17-206] Exiting Vivado at Thu Aug 14 11:05:19 2025...

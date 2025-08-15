@@ -70,6 +70,7 @@ proc create_report { reportName command } {
   }
 }
 OPTRACE "synth_1" START { ROLLUP_AUTO }
+set_param chipscope.maxJobs 1
 OPTRACE "Creating in-memory project" START { }
 create_project -in_memory -part xc7z010clg400-1
 
@@ -79,7 +80,7 @@ set_param synth.vivado.isSynthRun true
 set_msg_config -source 4 -id {IP_Flow 19-2162} -severity warning -new_severity info
 set_property webtalk.parent_dir /home/jakub/proj-zybo/setup-z7-10/hw/vivado/counter/counter.cache/wt [current_project]
 set_property parent.project_path /home/jakub/proj-zybo/setup-z7-10/hw/vivado/counter/counter.xpr [current_project]
-set_property XPM_LIBRARIES {XPM_CDC XPM_MEMORY} [current_project]
+set_property XPM_LIBRARIES {XPM_CDC XPM_FIFO XPM_MEMORY} [current_project]
 set_property default_lib xil_defaultlib [current_project]
 set_property target_language Verilog [current_project]
 set_property board_part digilentinc.com:zybo-z7-10:part0:1.2 [current_project]
@@ -91,11 +92,23 @@ OPTRACE "Creating in-memory project" END { }
 OPTRACE "Adding files" START { }
 read_verilog -library xil_defaultlib /home/jakub/proj-zybo/setup-z7-10/hw/vivado/counter/counter.gen/sources_1/bd/design_1/hdl/design_1_wrapper.v
 add_files /home/jakub/proj-zybo/setup-z7-10/hw/vivado/counter/counter.srcs/sources_1/bd/design_1/design_1.bd
-set_property used_in_implementation false [get_files -all /home/jakub/proj-zybo/setup-z7-10/hw/vivado/counter/counter.gen/sources_1/bd/design_1/ip/design_1_processing_system7_0_0/design_1_processing_system7_0_0.xdc]
+set_property used_in_implementation false [get_files -all /home/jakub/proj-zybo/setup-z7-10/hw/vivado/counter/counter.gen/sources_1/bd/design_1/ip/design_1_processing_system7_0_4/design_1_processing_system7_0_4.xdc]
+set_property used_in_implementation false [get_files -all /home/jakub/proj-zybo/setup-z7-10/hw/vivado/counter/counter.gen/sources_1/bd/design_1/ip/design_1_axi_dma_0_1/design_1_axi_dma_0_1.xdc]
+set_property used_in_implementation false [get_files -all /home/jakub/proj-zybo/setup-z7-10/hw/vivado/counter/counter.gen/sources_1/bd/design_1/ip/design_1_axi_dma_0_1/design_1_axi_dma_0_1_clocks.xdc]
+set_property used_in_implementation false [get_files -all /home/jakub/proj-zybo/setup-z7-10/hw/vivado/counter/counter.gen/sources_1/bd/design_1/ip/design_1_axi_dma_0_1/design_1_axi_dma_0_1_ooc.xdc]
+set_property used_in_implementation false [get_files -all /home/jakub/proj-zybo/setup-z7-10/hw/vivado/counter/counter.gen/sources_1/bd/design_1/ip/design_1_rst_ps7_0_50M_6/design_1_rst_ps7_0_50M_6_board.xdc]
+set_property used_in_implementation false [get_files -all /home/jakub/proj-zybo/setup-z7-10/hw/vivado/counter/counter.gen/sources_1/bd/design_1/ip/design_1_rst_ps7_0_50M_6/design_1_rst_ps7_0_50M_6.xdc]
+set_property used_in_implementation false [get_files -all /home/jakub/proj-zybo/setup-z7-10/hw/vivado/counter/counter.gen/sources_1/bd/design_1/ip/design_1_rst_ps7_0_50M_6/design_1_rst_ps7_0_50M_6_ooc.xdc]
+set_property used_in_implementation false [get_files -all /home/jakub/proj-zybo/setup-z7-10/hw/vivado/counter/counter.gen/sources_1/bd/design_1/ip/design_1_xbar_1/design_1_xbar_1_ooc.xdc]
+set_property used_in_implementation false [get_files -all /home/jakub/proj-zybo/setup-z7-10/hw/vivado/counter/counter.gen/sources_1/bd/design_1/ip/design_1_axis_data_fifo_0_0/design_1_axis_data_fifo_0_0_ooc.xdc]
 set_property used_in_implementation false [get_files -all /home/jakub/proj-zybo/setup-z7-10/hw/vivado/counter/counter.gen/sources_1/bd/design_1/ip/design_1_auto_pc_0/design_1_auto_pc_0_ooc.xdc]
-set_property used_in_implementation false [get_files -all /home/jakub/proj-zybo/setup-z7-10/hw/vivado/counter/counter.gen/sources_1/bd/design_1/ip/design_1_rst_ps7_0_50M_0/design_1_rst_ps7_0_50M_0_board.xdc]
-set_property used_in_implementation false [get_files -all /home/jakub/proj-zybo/setup-z7-10/hw/vivado/counter/counter.gen/sources_1/bd/design_1/ip/design_1_rst_ps7_0_50M_0/design_1_rst_ps7_0_50M_0.xdc]
-set_property used_in_implementation false [get_files -all /home/jakub/proj-zybo/setup-z7-10/hw/vivado/counter/counter.gen/sources_1/bd/design_1/ip/design_1_rst_ps7_0_50M_0/design_1_rst_ps7_0_50M_0_ooc.xdc]
+set_property used_in_synthesis false [get_files -all /home/jakub/proj-zybo/setup-z7-10/hw/vivado/counter/counter.gen/sources_1/bd/design_1/ip/design_1_auto_us_0/design_1_auto_us_0_clocks.xdc]
+set_property used_in_implementation false [get_files -all /home/jakub/proj-zybo/setup-z7-10/hw/vivado/counter/counter.gen/sources_1/bd/design_1/ip/design_1_auto_us_0/design_1_auto_us_0_clocks.xdc]
+set_property used_in_implementation false [get_files -all /home/jakub/proj-zybo/setup-z7-10/hw/vivado/counter/counter.gen/sources_1/bd/design_1/ip/design_1_auto_us_0/design_1_auto_us_0_ooc.xdc]
+set_property used_in_synthesis false [get_files -all /home/jakub/proj-zybo/setup-z7-10/hw/vivado/counter/counter.gen/sources_1/bd/design_1/ip/design_1_auto_us_1/design_1_auto_us_1_clocks.xdc]
+set_property used_in_implementation false [get_files -all /home/jakub/proj-zybo/setup-z7-10/hw/vivado/counter/counter.gen/sources_1/bd/design_1/ip/design_1_auto_us_1/design_1_auto_us_1_clocks.xdc]
+set_property used_in_implementation false [get_files -all /home/jakub/proj-zybo/setup-z7-10/hw/vivado/counter/counter.gen/sources_1/bd/design_1/ip/design_1_auto_us_1/design_1_auto_us_1_ooc.xdc]
+set_property used_in_implementation false [get_files -all /home/jakub/proj-zybo/setup-z7-10/hw/vivado/counter/counter.gen/sources_1/bd/design_1/ip/design_1_auto_pc_1/design_1_auto_pc_1_ooc.xdc]
 set_property used_in_implementation false [get_files -all /home/jakub/proj-zybo/setup-z7-10/hw/vivado/counter/counter.gen/sources_1/bd/design_1/design_1_ooc.xdc]
 
 OPTRACE "Adding files" END { }
@@ -110,6 +123,8 @@ foreach dcp [get_files -quiet -all -filter file_type=="Design\ Checkpoint"] {
 read_xdc dont_touch.xdc
 set_property used_in_implementation false [get_files dont_touch.xdc]
 set_param ips.enableIPCacheLiteLoad 1
+
+read_checkpoint -auto_incremental -incremental /home/jakub/proj-zybo/setup-z7-10/hw/vivado/counter/counter.srcs/utils_1/imports/synth_1/design_1_wrapper.dcp
 close [open __synthesis_is_running__ w]
 
 OPTRACE "synth_design" START { }

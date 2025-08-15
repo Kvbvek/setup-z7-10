@@ -18,6 +18,14 @@ xsim.dir/
 *.pb
 *.html
 vivado*.tcl
+hw/vivado/counter/counter.gen
+hw/vivado/counter/counter.runs
+hw/vivado/counter/counter.cache
+hw/vivado/counter/counter.tmp
+hw/vivado/counter/counter.gen
+sw/zynq_ps/axis_f2_system
+sw/zynq_ps/axis_f2_wrapper
+
 
 # Pliki i katalogi generowane przez Vitis
 vitis_workspace/

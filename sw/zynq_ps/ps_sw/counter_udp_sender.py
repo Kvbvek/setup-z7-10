@@ -1,38 +1,77 @@
 #!/usr/bin/env python3
-import mmap
-import struct
-import socket
-import time
-import os
+import os, mmap, struct, time, socket
 
-UIO_DEVICE = "/dev/uio0"
-MAP_SIZE = 0x1000
-UDP_IP = "192.186.3.1" # przydzielony statyczny adres IP na pc
-UDP_PORT = 5005 
+# -----------------------------
+# DMA and DDR configuration
+# -----------------------------
+UIO_DMA = "/dev/uio0"
+MAP_SIZE = 0x10000
+BUF_ADDR = 0x0A000000
+BUF_SIZE = 0x1000
 
-def main():
-    if not os.path.exists(UIO_DEVICE):
-        print(f"ERROR: {UIO_DEVICE} nie istnieje — sprawdź UIO driver")
-        return
+S2MM_DMACR   = 0x30
+S2MM_DMASR   = 0x34
+S2MM_DA      = 0x48
+S2MM_LENGTH  = 0x58
 
-    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+# -----------------------------
+# UDP configuration
+# -----------------------------
+UDP_IP = "192.168.3.1"
+UDP_PORT = 5005
+sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
-    with open(UIO_DEVICE, "r+b", buffering=0) as f:
-        mm = mmap.mmap(f.fileno(), MAP_SIZE, mmap.MAP_SHARED,
-                       mmap.PROT_READ | mmap.PROT_WRITE, offset=0)
+# -----------------------------
+# Open UIO to DMA
+# -----------------------------
+fd_dma = os.open(UIO_DMA, os.O_RDWR | os.O_SYNC)
+mm_dma = mmap.mmap(fd_dma, MAP_SIZE, mmap.MAP_SHARED,
+                   mmap.PROT_READ | mmap.PROT_WRITE, offset=0)
 
-        try:
-            while True:
-                mm.seek(0)  # licznik pod offset 0x0
-                data = mm.read(4)
-                value = struct.unpack("<I", data)[0]
-                message = str(value).encode()
-                sock.sendto(message, (UDP_IP, UDP_PORT))
-                print(f"Wysłano: {value}")
-                time.sleep(0.5)
-        finally:
-            mm.close()
-            sock.close()
+# Open DDR
+fd_mem = os.open("/dev/mem", os.O_RDWR | os.O_SYNC)
+mm_ddr = mmap.mmap(fd_mem, BUF_SIZE, mmap.MAP_SHARED,
+                   mmap.PROT_READ | mmap.PROT_WRITE, offset=BUF_ADDR)
 
-if __name__ == "__main__":
-    main()
+def dma_wr(off, val):
+    struct.pack_into("<I", mm_dma, off, val)
+
+def dma_rd(off):
+    return struct.unpack_from("<I", mm_dma, off)[0]
+
+print("Reset DMA...")
+dma_wr(S2MM_DMACR, 0x4)   # reset
+time.sleep(0.01)
+dma_wr(S2MM_DMACR, 0x1)   # run/enable
+dma_wr(S2MM_DA, BUF_ADDR)
+
+# 100 words 4 bytes each
+transfer_len = 100 * 4
+dma_wr(S2MM_LENGTH, transfer_len)
+
+# Czekaj na zakończenie DMA
+print("Waiting for DMA...")
+while True:
+    status = dma_rd(S2MM_DMASR)
+    if status & 0x0002:  # IOC_Irq
+        break
+    time.sleep(0.001)
+
+print("Transfer ended, sending data through UDP...")
+
+# -----------------------------
+# Sending data
+# -----------------------------
+buf = mm_ddr.read(transfer_len)  # read data once
+sock.sendto(buf, (UDP_IP, UDP_PORT))
+
+print(f"Sended {transfer_len} bytes to {UDP_IP}:{UDP_PORT}")
+
+# -----------------------------
+# Closing
+# -----------------------------
+mm_dma.close()
+mm_ddr.close()
+os.close(fd_dma)
+os.close(fd_mem)
+sock.close()
