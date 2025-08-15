@@ -1,11 +1,14 @@
 /include/ "system-conf.dtsi"
-/ {   
-    my_counter@43C00000 {
-        compatible = "generic-uio";
-        reg = <0x43C00000 0x1000>;
-    };
-
+/ {
     chosen {
-        bootargs = "console=ttyPS0,115200 earlyprintk uio_pdrv_genirq.of_id=generic-uio";
+        bootargs = "console=ttyPS0,115200 uio_pdrv_genirq.of_id=generic-uio";
+    };
+};
+
+&amba_pl {
+    axis_fifo_0: axis-fifo@40400000 {
+        compatible = "generic-uio";
+        reg = <0x40400000 0x00010000>;  // adres z Address Editor
+        interrupts = <0 59 4>;       // jeśli używasz IRQ
     };
 };
