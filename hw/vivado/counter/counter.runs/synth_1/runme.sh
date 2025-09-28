@@ -20,7 +20,7 @@ else
 fi
 export LD_LIBRARY_PATH
 
-HD_PWD='/home/jakub/proj-zybo/setup-z7-10/hw/vivado/counter/counter.runs/synth_1'
+HD_PWD='/home/jakub/zybo_latest/setup-z7-10/hw/vivado/counter/counter.runs/synth_1'
 cd "$HD_PWD"
 
 HD_LOG=runme.log
