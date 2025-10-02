@@ -39,6 +39,7 @@ vitis_workspace/
 #-------------------------------------------
 
 # Pliki i katalogi generowane przez PetaLinux
+os/counter
 build/
 components/
 pre-built/

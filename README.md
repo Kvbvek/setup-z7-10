@@ -1,11 +1,44 @@
+## Struktura repozytorium
+
+```text
+├── hw                                  - pliki związane z hardware
+│   ├── export                          - folder docelowy do umieszczenia plików .xsa
+│   │   └── .keep
+│   ├── src                             - pliki .v, .sv
+│   │   └── axis_counter.v              - licznik axi stream
+│   └── vivado                          - folder do pracy z vivado
+│       └── .keep 
+├── README.md                           - ten plik
+├── os                                  - pliki związane z os
+│   ├── counter                         - folder projektu petalinux                      
+│   └── .keep
+├── scripts                             - skrypty
+│   └── hw                              - skrypty związane z hw
+|       ├── create_project.sh           - skrypt do stworzenia projektu w vivado
+|       ├── create_project.tcl
+|       ├── generate_bitstream.sh       - skrypt do generowania bitstream - to be fixed...
+|       └── generate_bitstream.tcl
+├── sw                                  - pliki związane z software
+│   ├── host_pc                         - folder z plikami związanymi z PC (host)
+│   │   └── counter_udp_receiver.py     - skrypt do odbioru danych
+│   └── zynq_ps                         - folder z plikami związanymi z PS/fpga
+│       |── ps_sw                       - folder ze skryptami uruchamianymi z poziomu linuxa
+|       |   ├── counter_print.py        - skrypt do przetestowania odbioru danych
+|       |   └── counter_udp_sender.py   - skrypt do odbioru danych i wysyłu przez UDP
+|       └── test                        - folder do testowania układu w vitis
+|           └── ...
+|── .gitignore
+└── env.sh                              - skrypt to konfiguracji środowiska pracy
+```
+
 ## 1. Projektowanie i implementacja w Vivado
 
 Pierwszym etapem było stworzenie projektu sprzętowego.
-Stworzono custom IP AXI4-Stream peripheral - licznik liczący do 100, dodano do block diagram m.in. Zynq PS, AXI DMA, AXI Stream Data FIFO, i wykonano odpowiednie połączenia.
+Za pomocą kodu generowanego podczas tworzenia custom IP AXI Stream zaimplementowano licznik generujący kolejne wartości powiększone o 1 aż do wyznaczonego limitu (aktualnie ok. 1MB). Dodano do block diagram m.in. Zynq PS, AXI DMA, AXI Stream Data FIFO, i wykonano odpowiednie połączenia.
 
 Block design components:
 
-![Block design screenshot](https://i.imgur.com/fuxsFuy.png)
+![Block design screenshot](https://i.imgur.com/knPdo6P.png)
 
 * Generowanie Hardware: Po poprawnym połączeniu wszystkich komponentów, projekt został zwalidowany, a następnie wygenerowano HDL Wrapper i Bitstream. Na koniec wykonano eksport sprzętu w celu uzyskania pliku _.xsa_, który zawiera kompletną definicję układu.
 
@@ -67,4 +100,11 @@ Ostatecznym celem było przesłanie danych z licznika do komputera PC.
 
 ## Działanie aplikacji:
 
-![screenshot](https://i.imgur.com/SNzq8Gu.png)
+Aktualny problem:
+Początkowe wartości generowane w PL są ucinane i odbierane dane są "przesunięte" tzn. zamiast 0,1,2,3... jest 12,13,14... Końcowa wartość jest poprawna i zgodna z kodem licznika. 
+
+Podobny problem występuje na etapie testowania układu w vitis, gdzie początkowe dane również są ucięte, natomiast zaczynają się od 4,5,6... 
+
+![screenshot](https://i.imgur.com/sdvcgZI.png)
+
+W celu przeprowadzenia większych transferów niż 1MB, np. 100MB czy 1GB prawdopodobnie potrzebne będą modyfikację ponieważ length buffer w axi dma jest ustawiany na 2^26 czyli około 64MB, co jest maksymalną wartością. Transfer w jednym "rzucie" będzie niemożliwy i trzeba będzie nanieść lekkie poprawki, natomiast priorytetem aktualnie jest identyfikacja wyżej opisanego błędu.

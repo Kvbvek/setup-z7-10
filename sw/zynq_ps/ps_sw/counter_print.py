@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
 import os, mmap, struct, time
+import numpy as np
 
 # Konfiguracja
 UIO_DMA = "/dev/uio0"        # UIO dla AXI DMA
-MAP_SIZE = 0x10000           # 64 KB mapowania
+MAP_SIZE = 0x10000           # 64 KB mapowania DMA
 BUF_ADDR = 0x0A000000        # adres bufora w DDR (fizyczny)
-BUF_SIZE = 0x1000            # 4 KB bufora = 1024 słowa (32-bit)
+BUF_SIZE = 262144 * 4        # 262144 słowa * 4 bajty = 1 MB
 
 # Rejestry DMA S2MM (PG021)
 S2MM_DMACR   = 0x30  # Control register
 S2MM_DMASR   = 0x34  # Status register
-S2MM_SA      = 0x48  # Source address (dla MM2S) – nieużywany tutaj
 S2MM_DA      = 0x48  # Destination address (dla S2MM)
 S2MM_LENGTH  = 0x58  # Transfer length in bytes
 
@@ -39,8 +39,8 @@ dma_wr(S2MM_DMACR, 0x1)   # run/enable
 # Ustaw adres bufora docelowego
 dma_wr(S2MM_DA, BUF_ADDR)
 
-# Długość transferu (np. 100 słów * 4 bajty = 400 bajtów)
-transfer_len = 100 * 4
+# Długość transferu
+transfer_len = 262144 * 4  # 1 MB
 dma_wr(S2MM_LENGTH, transfer_len)
 
 # Czekaj na zakończenie transferu
@@ -53,12 +53,28 @@ while True:
 
 print("Transfer zakończony.")
 
-# Czytaj dane z DDR
-print("Odebrane dane:")
-for i in range(0, transfer_len, 4):
-    val = struct.unpack_from("<I", mm_ddr, i)[0]
-    print(val)
+# Wczytaj dane do NumPy
+data = np.frombuffer(mm_ddr, dtype=np.uint32)
 
+# Wypisz pierwsze i ostatnie 16 słów
+print("Odebrane dane (pierwsze 16 słów dla podglądu):")
+print(data[:16])
+
+print("\nOdebrane dane (ostatnie 16 słów):")
+print(data[-16:])
+
+# Weryfikacja poprawności
+expected = np.arange(262144, dtype=np.uint32)
+mismatch = np.sum(data != expected)
+print(f"\nLiczba błędnych wartości: {mismatch}")
+
+if mismatch > 0:
+    print("Przykładowe błędne wartości (indeks, odebrane, oczekiwane):")
+    wrong_indices = np.where(data != expected)[0][:10]  # max 10 przykładów
+    for idx in wrong_indices:
+        print(idx, data[idx], expected[idx])
+
+# Zamknięcie
 mm_dma.close()
 mm_ddr.close()
 os.close(fd_dma)
