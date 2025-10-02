@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 import os, mmap, struct, time
-import numpy as np
 
 # Konfiguracja
 UIO_DMA = "/dev/uio0"        # UIO dla AXI DMA
@@ -53,28 +52,17 @@ while True:
 
 print("Transfer zakończony.")
 
-# Wczytaj dane do NumPy
-data = np.frombuffer(mm_ddr, dtype=np.uint32)
-
-# Wypisz pierwsze i ostatnie 16 słów
+# Czytaj dane z DDR
 print("Odebrane dane (pierwsze 16 słów dla podglądu):")
-print(data[:16])
+for i in range(0, min(transfer_len, 64), 4):  # wypisz pierwsze 16 słów
+    val = struct.unpack_from("<I", mm_ddr, i)[0]
+    print(val)
 
 print("\nOdebrane dane (ostatnie 16 słów):")
-print(data[-16:])
-
-# Weryfikacja poprawności
-expected = np.arange(262144, dtype=np.uint32)
-mismatch = np.sum(data != expected)
-print(f"\nLiczba błędnych wartości: {mismatch}")
-
-if mismatch > 0:
-    print("Przykładowe błędne wartości (indeks, odebrane, oczekiwane):")
-    wrong_indices = np.where(data != expected)[0][:10]  # max 10 przykładów
-    for idx in wrong_indices:
-        print(idx, data[idx], expected[idx])
-
-# Zamknięcie
+for i in range(transfer_len - 64, transfer_len, 4):  # wypisz ostatnie 16 słów
+    val = struct.unpack_from("<I", mm_ddr, i)[0]
+    print(val)
+    
 mm_dma.close()
 mm_ddr.close()
 os.close(fd_dma)
