@@ -99,12 +99,19 @@ Ostatecznym celem było przesłanie danych z licznika do komputera PC.
 * Skrypt na PC (_counter_udp_receiver.py_): Na komputerze PC działa skrypt w Pythonie, który nasłuchuje na porcie UDP i odbiera dane, wyświetlając aktualną wartość licznika.
 
 ## Działanie aplikacji:
+Aktualnie dostosowane skrypty do 1MB transferu to _counter_print.py_ oraz kod napisany w C do testowania w Vitis. Aplikacje działają w trybie pollingu. Pozostałe skrypty to starsze wersje do mniejszego transferu. Proszę je ignorować w obecnym stanie.
 
 Aktualny problem:
-Początkowe wartości generowane w PL są ucinane i odbierane dane są "przesunięte" tzn. zamiast 0,1,2,3... jest 12,13,14... Końcowa wartość jest poprawna i zgodna z kodem licznika. 
+Początkowe wartości generowane w PL są ucinane i odbierane dane są "przesunięte" tzn. zamiast 0,1,2,3... jest 12,13,14... Końcowa wartość jest poprawna i zgodna z kodem licznika. Innymi słowy brakuje początkowych wartości. 
 
 Podobny problem występuje na etapie testowania układu w vitis, gdzie początkowe dane również są ucięte, natomiast zaczynają się od 4,5,6... 
 
+### Wynik działania skryptu _counter_print.py_ uruchomionego z poziomu linuxa
 ![screenshot](https://i.imgur.com/sdvcgZI.png)
+
+### Konfiguracja AXI DMA i FIFO
+![screenshot](https://i.imgur.com/yMFJVPl.png)
+![screenshot](https://i.imgur.com/tXEeP6l.png)
+
 
 W celu przeprowadzenia większych transferów niż 1MB, np. 100MB czy 1GB prawdopodobnie potrzebne będą modyfikację ponieważ length buffer w axi dma jest ustawiany na 2^26 czyli około 64MB, co jest maksymalną wartością. Transfer w jednym "rzucie" będzie niemożliwy i trzeba będzie nanieść lekkie poprawki, natomiast priorytetem aktualnie jest identyfikacja wyżej opisanego błędu.
