@@ -1,0 +1,20 @@
+[submodule "os/src/poky"]
+	path = os/src/poky
+	url = https://github.com/yoctoproject/poky.git
+	branch = scarthgap
+[submodule "os/src/meta-openembedded"]
+	path = os/src/meta-openembedded
+	url = https://github.com/openembedded/meta-openembedded.git
+	branch = scarthgap
+[submodule "os/src/meta-arm"]
+	path = os/src/meta-arm
+	url = https://github.com/jonmason/meta-arm.git
+	branch = jdm/scarthgap-fvp
+[submodule "os/src/meta-xilinx"]
+	path = os/src/meta-xilinx
+	url = https://github.com/Xilinx/meta-xilinx.git
+	branch = scarthgap
+[submodule "os/src/meta-xilinx-tools"]
+	path = os/src/meta-xilinx-tools
+	url = https://github.com/Xilinx/meta-xilinx-tools.git
+	branch = scarthgap
