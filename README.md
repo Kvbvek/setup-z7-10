@@ -49,9 +49,59 @@ W celu upewnienia się, że customowy IP działa poprawnie, został stworzony pr
 
 * Testowanie: Napisano kod w języku C, który odczytuje kolejne wartości licznika. Pozwoliło to na zweryfikowanie, czy licznik działa zgodnie z oczekiwaniami przed przejściem do konfiguracji petalinux'a.
 
-## 3. Konfiguracja i budowanie projektu PetaLinux
+## 3. Konfiguracja i budowanie projektu Yocto/poky (PetaLinux - deprecated)
 
-Konfiguracja projektu
+Miejsce do tworzenia obrazu - _os/src_
+
+Używane branche - scarthgap
+
+Przebieg tworzenia obrazu:
+ 
+```
+source oe-init-build-env
+```
+
+Dodanie layerów komendą: 
+```
+ bitbake-layers add-layer <ścieżka_do_layera>
+ ``` 
+Plik _build/conf/bblayers.conf_ po dodaniu layerów:
+
+```
+# POKY_BBLAYERS_CONF_VERSION is increased each time build/conf/bblayers.conf
+# changes incompatibly
+POKY_BBLAYERS_CONF_VERSION = "2"
+
+BBPATH = "${TOPDIR}"
+BBFILES ?= ""
+
+BBLAYERS ?= " \
+  /home/jakub/zybo-os/src/poky/meta \
+  /home/jakub/zybo-os/src/poky/meta-poky \
+  /home/jakub/zybo-os/src/poky/meta-yocto-bsp \
+  /home/jakub/zybo-os/src/meta-arm/meta-arm-toolchain \
+  /home/jakub/zybo-os/src/meta-arm/meta-arm \
+  /home/jakub/zybo-os/src/meta-openembedded/meta-oe \
+  /home/jakub/zybo-os/src/meta-xilinx/meta-xilinx-core \
+  /home/jakub/zybo-os/src/meta-xilinx/meta-xilinx-bsp \
+  /home/jakub/zybo-os/src/meta-xilinx/meta-xilinx-standalone \
+  /home/jakub/zybo-os/src/meta-xilinx-tools \
+  "
+```
+
+W pliku _build/conf/local.conf_ dodanie linii:
+```
+MACHINE = "zynq-generic"
+```
+Więc używamy maszyny defaultowej dla urządzeń z zynq-7000, konfiguracja znajduje się w _meta-xilinx/meta-xilinx-core/conf/machine/zynq-generic.conf_
+
+Tworzenie minimalnego obrazu, narazie nie uwzględniając pliku _.xsa_ wygenerowanego w vivado:
+
+```
+bitbake core-image-minimal
+```
+
+<!-- Konfiguracja projektu
 
 ```
 petalinux-create --type project --template zynq --name <NAZWA_PROJEKTU>
@@ -89,9 +139,24 @@ Kompilacja i pakowanie
 ```
 petalinux-build
 petalinux-package --boot --fsbl images/linux/zynq_fsbl.elf --fpga images/linux/system.bit --u-boot --kernel
-```
+``` -->
+
 
 ## 4. Przygotowanie karty SD i uruchomienie
+```
+sudo umount /dev/sdd1
+sudo umount /dev/sdd2
+```
+
+Skopiowałem na kartę SD plik _/home/jakub/zybo-os/src/build/tmp/deploy/images/zynq-generic/core-image-minimal-zynq-generic.rootfs.wic.qemu-sd_
+
+```
+sudo dd if=core-image-minimal-zynq-generic.rootfs.wic.qemu-sd of=/dev/sdd bs=4M status=progress
+```
+
+Niestety w folderze _build/tmp/deploy/images_ brakowało pliku BOOT.bin, więc początkowo podczas bootowania, po połączeniu przez UART nic się nie wyświetlało. Skopiowałem wcześniej używany plik BOOT.bin na kartę SD, który był wygenerowany przy użyciu Petalinux i system ruszył, natomiast jest to chwilowe rozwiązanie, bo nie byłem stanie w prosty sposób na szybko naprawić tak żeby również BOOT.bin został wygenerowany używając yocto.
+
+![Yocto linux](https://i.imgur.com/OsvhZDm.png)
 
 ## 5. Komunikacja i testowanie
 Ostatecznym celem było przesłanie danych z licznika do komputera PC.
