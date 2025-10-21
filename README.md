@@ -58,7 +58,7 @@ Używane branche - scarthgap
 Przebieg tworzenia obrazu:
  
 ```
-source oe-init-build-env
+source poky/oe-init-build-env
 ```
 
 Dodanie layerów komendą: 
