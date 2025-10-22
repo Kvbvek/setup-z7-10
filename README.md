@@ -62,7 +62,7 @@ https://github.com/Xilinx/meta-xilinx/blob/master/README.building.md
 Przebieg tworzenia obrazu:
  
 ```
-source oe-init-build-env
+source poky/oe-init-build-env
 ```
 
 Dodanie layerów komendą: 
