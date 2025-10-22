@@ -95,7 +95,7 @@ BBLAYERS ?= " \
 
 W pliku _build/conf/local.conf_ dodanie linii:
 ```
-HDF_FILE = "/home/jakub/zybo-os/src/1m_check.xsa"
+HDF_FILE = "<ścieżka do .xsa>"
 XILINX_WITH_ESW = "xsct"
 XILINX_XSCT_VERSION = "2023.1"
 XILINX_SDK_TOOLCHAIN = "/tools/Xilinx/Vitis/2022.1"
