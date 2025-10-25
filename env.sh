@@ -41,21 +41,28 @@ fi
 
 cd ${ROOTDIR}/sw/arm
 
-. poky/oe-init-build-env
+if [ ! -d build ]; then
 
- cat <<-EOF >> conf/local.conf
+    . poky/oe-init-build-env
+
+    cat <<-EOF >> conf/local.conf
 HDF_FILE = "<../../../../hw/export/1m_check.xsa>"
 XILINX_WITH_ESW = "xsct"
 XILINX_XSCT_VERSION = "2023.1"
 XILINX_SDK_TOOLCHAIN = "/tools/Xilinx/Vitis/2022.1"
 EOF
 
-bitbake-layers add-layer ../meta-arm/meta-arm-toolchain
-bitbake-layers add-layer ../meta-arm/meta-arm
-bitbake-layers add-layer ../meta-openembedded/meta-oe
-bitbake-layers add-layer ../meta-xilinx/meta-xilinx-core
-bitbake-layers add-layer ../meta-xilinx/meta-xilinx-bsp
-bitbake-layers add-layer ../meta-xilinx/meta-xilinx-standalone
-bitbake-layers add-layer ../meta-xilinx-tools
+    bitbake-layers add-layer ../meta-arm/meta-arm-toolchain
+    bitbake-layers add-layer ../meta-arm/meta-arm
+    bitbake-layers add-layer ../meta-openembedded/meta-oe
+    bitbake-layers add-layer ../meta-xilinx/meta-xilinx-core
+    bitbake-layers add-layer ../meta-xilinx/meta-xilinx-bsp
+    bitbake-layers add-layer ../meta-xilinx/meta-xilinx-standalone
+    bitbake-layers add-layer ../meta-xilinx-tools
+
+else
+    . poky/oe-init-build-env
+    echo "'build' directory exists, skipping conf"
+fi
 
 cd ${ROOTDIR}

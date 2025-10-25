@@ -1,2 +1,0 @@
-export PATH=$PATH:~/setup-z7-10/sw/arm/meta-xilinx/meta-xilinx-core/gen-machine-conf
-gen-machineconf   --soc-family zynq   --hw-description ~/setup-z7-10/hw/export/1m_check.xsa   -c ~/setup-z7-10/sw/arm/build/conf/   -l ~/setup-z7-10/sw/arm/build/conf/local.conf   --machine-name zynq-zyboz710-xsct-v0.1
