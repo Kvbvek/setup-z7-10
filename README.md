@@ -1,4 +1,4 @@
-## Struktura repozytorium
+<!-- ## Struktura repozytorium
 
 ```text
 ├── hw                                  - pliki związane z hardware
@@ -29,7 +29,7 @@
 |           └── ...
 |── .gitignore
 └── env.sh                              - skrypt to konfiguracji środowiska pracy
-```
+``` -->
 
 ## 1. Projektowanie i implementacja w Vivado
 
