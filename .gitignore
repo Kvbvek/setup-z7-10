@@ -39,13 +39,7 @@ vitis_workspace/
 #-------------------------------------------
 
 # Pliki i katalogi generowane przez PetaLinux
-os/counter
-build/
-components/
-pre-built/
-images/
-project-spec/configs/
-*.bsp
+sw/arm/build
 *.log
 
 *.txt

@@ -1,10 +1,6 @@
 #!/bin/bash
 
 # =========================================================
-# This script sources the settings for Vivado, PetaLinux,
-# and Vitis to configure the environment.
-# Update the paths and versions as needed.
-# =========================================================
 
 XILINX_INSTALL_DIR="/tools/Xilinx"
 PETALINUX_INSTALL_DIR="$HOME"
@@ -14,6 +10,8 @@ VITIS_VERSION="2022.1"
 PETALINUX_VERSION="2022.1"
 
 # =========================================================
+
+export ROOTDIR=$(pwd)
 
 echo "Sourcing environment settings for Xilinx tools..."
 
@@ -40,3 +38,24 @@ if [ -f "${PETALINUX_SETTINGS_PATH}" ]; then
 else
     echo "  - ERROR: PetaLinux settings file not found at ${PETALINUX_SETTINGS_PATH}"
 fi
+
+cd ${ROOTDIR}/sw/arm
+
+. poky/oe-init-build-env
+
+ cat <<-EOF >> conf/local.conf
+HDF_FILE = "<../../../../hw/export/1m_check.xsa>"
+XILINX_WITH_ESW = "xsct"
+XILINX_XSCT_VERSION = "2023.1"
+XILINX_SDK_TOOLCHAIN = "/tools/Xilinx/Vitis/2022.1"
+EOF
+
+bitbake-layers add-layer ../meta-arm/meta-arm-toolchain
+bitbake-layers add-layer ../meta-arm/meta-arm
+bitbake-layers add-layer ../meta-openembedded/meta-oe
+bitbake-layers add-layer ../meta-xilinx/meta-xilinx-core
+bitbake-layers add-layer ../meta-xilinx/meta-xilinx-bsp
+bitbake-layers add-layer ../meta-xilinx/meta-xilinx-standalone
+bitbake-layers add-layer ../meta-xilinx-tools
+
+cd ${ROOTDIR}
