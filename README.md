@@ -53,7 +53,11 @@ W celu upewnienia się, że customowy IP działa poprawnie, został stworzony pr
 
 Miejsce do tworzenia obrazu - _os/src_
 
-Używane branche - scarthgap
+Używane branche - **scarthgap**
+
+Głównie wzorowałem się instrukcją od Xilinxa:
+
+https://github.com/Xilinx/meta-xilinx/blob/master/README.building.md
 
 Przebieg tworzenia obrazu:
  
@@ -91,16 +95,32 @@ BBLAYERS ?= " \
 
 W pliku _build/conf/local.conf_ dodanie linii:
 ```
-MACHINE = "zynq-generic"
+HDF_FILE = "<ścieżka do .xsa>"
+XILINX_WITH_ESW = "xsct"
+XILINX_XSCT_VERSION = "2023.1"
+XILINX_SDK_TOOLCHAIN = "/tools/Xilinx/Vitis/2022.1"
 ```
-Więc używamy maszyny defaultowej dla urządzeń z zynq-7000, konfiguracja znajduje się w _meta-xilinx/meta-xilinx-core/conf/machine/zynq-generic.conf_
+**Powyższe linijki są skonfigurowane pod mój projekt i wersje, które używam**
 
-Tworzenie minimalnego obrazu, narazie nie uwzględniając pliku _.xsa_ wygenerowanego w vivado:
+Następnie aby uwzględnić konfiguracje sprzętową z pliku _.xsa_:
+
+https://github.com/Xilinx/meta-xilinx-tools/blob/master/README.xsct.bsp.md
+
+Po użyciu komendy _**gen-machineconf**_ w pliku _build/conf/local.conf_ pojawiły się m.in.
+* MACHINE = "<nazwa maszyny podana przy wywołaniu gen-machineconf>"
+
+W pliku _build/conf/local.conf_ dodanie linii:
+```
+IMAGE_FSTYPES += "wic"
+WKS_FILES = "xilinx-default-sd.wks"
+```
+Następnie:
 
 ```
 bitbake core-image-minimal
 ```
 
+Zatem udało się zbudować system uzwględniając plik .xsa i na jego podstawie stworzyć customową maszynę kompatybilną typowo z naszym projektem.
 <!-- Konfiguracja projektu
 
 ```
@@ -148,15 +168,15 @@ sudo umount /dev/sdd1
 sudo umount /dev/sdd2
 ```
 
-Skopiowałem na kartę SD plik _/home/jakub/zybo-os/src/build/tmp/deploy/images/zynq-generic/core-image-minimal-zynq-generic.rootfs.wic.qemu-sd_
+Skopiowałem na kartę SD plik _/home/jakub/zybo-os/src/build/tmp/deploy/images/<nazwa używanej maszyny>/<nazwa używanej maszyny>.rootfs.wic_
 
 ```
-sudo dd if=core-image-minimal-zynq-generic.rootfs.wic.qemu-sd of=/dev/sdd bs=4M status=progress
+sudo dd if=core-image-minimal-<nazwa używanej maszyny>.rootfs.wic of=/dev/sdd bs=1M status=progress
 ```
 
-Niestety w folderze _build/tmp/deploy/images_ brakowało pliku BOOT.bin, więc początkowo podczas bootowania, po połączeniu przez UART nic się nie wyświetlało. Skopiowałem wcześniej używany plik BOOT.bin na kartę SD, który był wygenerowany przy użyciu Petalinux i system ruszył, natomiast jest to chwilowe rozwiązanie, bo nie byłem stanie w prosty sposób na szybko naprawić tak żeby również BOOT.bin został wygenerowany używając yocto.
+<!-- ![Yocto linux](https://i.imgur.com/OsvhZDm.png) -->
 
-![Yocto linux](https://i.imgur.com/OsvhZDm.png)
+![Yocto linux](https://i.imgur.com/MFwtr8m.png)
 
 ## 5. Komunikacja i testowanie
 Ostatecznym celem było przesłanie danych z licznika do komputera PC.
