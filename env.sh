@@ -46,7 +46,7 @@ if [ ! -d build ]; then
     . poky/oe-init-build-env
 
     cat <<-EOF >> conf/local.conf
-HDF_FILE = "<../../../../hw/export/1m_check.xsa>"
+HDF_FILE = "<../../../../hw/export/zybo-agh.xsa>"
 XILINX_WITH_ESW = "xsct"
 XILINX_XSCT_VERSION = "2023.1"
 XILINX_SDK_TOOLCHAIN = "/tools/Xilinx/Vitis/2022.1"
