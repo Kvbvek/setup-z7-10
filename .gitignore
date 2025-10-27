@@ -1,45 +1,19 @@
-# Pliki i katalogi generowane przez Vivado
+# Vivado files, dirs
 .Xil/
 .xil/
 *.jou
 *.log
-*.str
 *.xsa
-*.bit
-*.bin
-*.elf
-*.bin
-*.mem
-*.mcs
-*.bif
-_x/
-xsim.dir/
-*.wdb
-*.pb
-*.html
-vivado*.tcl
-hw/vivado/counter/counter.gen
-hw/vivado/counter/counter.runs
-hw/vivado/counter/counter.cache
-hw/vivado/counter/counter.tmp
-hw/vivado/counter/counter.gen
-sw/zynq_ps/axis_f2_system
-sw/zynq_ps/axis_f2_wrapper
+hw/vivado/counter
+hw/export/*
 
-
-# Pliki i katalogi generowane przez Vitis
+# Vitis files, dirs
 vitis_workspace/
 *.build_log
 *.vitis_log
 .metadata/
 .sdk/
 
-#-------------------------------------------
-# PetaLinux
-#-------------------------------------------
-
-# Pliki i katalogi generowane przez PetaLinux
+# Yocto files, dirs
 sw/arm/build
 *.log
-
-*.txt

@@ -50,6 +50,9 @@ HDF_FILE = "<../../../../hw/export/1m_check.xsa>"
 XILINX_WITH_ESW = "xsct"
 XILINX_XSCT_VERSION = "2023.1"
 XILINX_SDK_TOOLCHAIN = "/tools/Xilinx/Vitis/2022.1"
+DISTRO = "zybo-agh-poky"
+IMAGE_FSTYPES += "wic"
+WKS_FILES = "xilinx-default-sd.wks"
 EOF
 
     bitbake-layers add-layer ../meta-arm/meta-arm-toolchain
@@ -59,6 +62,7 @@ EOF
     bitbake-layers add-layer ../meta-xilinx/meta-xilinx-bsp
     bitbake-layers add-layer ../meta-xilinx/meta-xilinx-standalone
     bitbake-layers add-layer ../meta-xilinx-tools
+    bitbake-layers add-layer ../meta-zybo-agh
 
 else
     . poky/oe-init-build-env
