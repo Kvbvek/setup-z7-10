@@ -58,6 +58,7 @@ EOF
     bitbake-layers add-layer ../meta-arm/meta-arm-toolchain
     bitbake-layers add-layer ../meta-arm/meta-arm
     bitbake-layers add-layer ../meta-openembedded/meta-oe
+    bitbake-layers add-layer ../meta-openembedded/meta-python
     bitbake-layers add-layer ../meta-xilinx/meta-xilinx-core
     bitbake-layers add-layer ../meta-xilinx/meta-xilinx-bsp
     bitbake-layers add-layer ../meta-xilinx/meta-xilinx-standalone
