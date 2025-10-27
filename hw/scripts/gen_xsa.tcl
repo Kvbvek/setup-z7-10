@@ -1,5 +1,5 @@
 # ==========================================
-# Vivado build script - generate .xsa for zynq_zybo
+# Vivado build script - generate .xsa for zybo
 # Usage: vivado -mode batch -source build_xsa.tcl -tclargs <path_to_hw_folder>
 # ==========================================
 
@@ -14,7 +14,7 @@ set hw_dir [lindex $argv 0]
 set proj_name "counter"
 set proj_dir [file join $hw_dir "vivado" $proj_name "${proj_name}.xpr"]
 set export_dir [file join $hw_dir "export"]
-set xsa_name "zynq_zybo.xsa"
+set xsa_name "zybo-agh.xsa"
 
 # --- Check if project exists ---
 if {![file exists $proj_dir]} {
