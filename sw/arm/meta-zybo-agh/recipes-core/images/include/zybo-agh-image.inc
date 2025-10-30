@@ -1,4 +1,5 @@
 IMAGE_INSTALL += " \
+    data-test \
     devmem2 \
     kernel-modules \
     ethtool \
