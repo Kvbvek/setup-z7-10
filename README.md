@@ -1,36 +1,3 @@
-<!-- ## Struktura repozytorium
-
-```text
-├── hw                                  - pliki związane z hardware
-│   ├── export                          - folder docelowy do umieszczenia plików .xsa
-│   │   └── .keep
-│   ├── src                             - pliki .v, .sv
-│   │   └── axis_counter.v              - licznik axi stream
-│   └── vivado                          - folder do pracy z vivado
-│       └── .keep 
-├── README.md                           - ten plik
-├── os                                  - pliki związane z os
-│   ├── counter                         - folder projektu petalinux                      
-│   └── .keep
-├── scripts                             - skrypty
-│   └── hw                              - skrypty związane z hw
-|       ├── create_project.sh           - skrypt do stworzenia projektu w vivado
-|       ├── create_project.tcl
-|       ├── generate_bitstream.sh       - skrypt do generowania bitstream - to be fixed...
-|       └── generate_bitstream.tcl
-├── sw                                  - pliki związane z software
-│   ├── host_pc                         - folder z plikami związanymi z PC (host)
-│   │   └── counter_udp_receiver.py     - skrypt do odbioru danych
-│   └── zynq_ps                         - folder z plikami związanymi z PS/fpga
-│       |── ps_sw                       - folder ze skryptami uruchamianymi z poziomu linuxa
-|       |   ├── counter_print.py        - skrypt do przetestowania odbioru danych
-|       |   └── counter_udp_sender.py   - skrypt do odbioru danych i wysyłu przez UDP
-|       └── test                        - folder do testowania układu w vitis
-|           └── ...
-|── .gitignore
-└── env.sh                              - skrypt to konfiguracji środowiska pracy
-``` -->
-
 ## 1. Projektowanie i implementacja w Vivado
 
 Pierwszym etapem było stworzenie projektu sprzętowego.
@@ -49,117 +16,38 @@ W celu upewnienia się, że customowy IP działa poprawnie, został stworzony pr
 
 * Testowanie: Napisano kod w języku C, który odczytuje kolejne wartości licznika. Pozwoliło to na zweryfikowanie, czy licznik działa zgodnie z oczekiwaniami przed przejściem do konfiguracji petalinux'a.
 
-## 3. Konfiguracja i budowanie projektu Yocto/poky (PetaLinux - deprecated)
+## 3. Konfiguracja i budowanie obrazu systemu z użyciem Yocto/poky
 
-Miejsce do tworzenia obrazu - _os/src_
+Miejsce do tworzenia obrazu - _sw/arm_
 
 Używane branche - **scarthgap**
-
-Głównie wzorowałem się instrukcją od Xilinxa:
 
 https://github.com/Xilinx/meta-xilinx/blob/master/README.building.md
 
 Przebieg tworzenia obrazu:
- 
-```
-source poky/oe-init-build-env
-```
-
-Dodanie layerów komendą: 
-```
- bitbake-layers add-layer <ścieżka_do_layera>
- ``` 
-Plik _build/conf/bblayers.conf_ po dodaniu layerów:
-
-```
-# POKY_BBLAYERS_CONF_VERSION is increased each time build/conf/bblayers.conf
-# changes incompatibly
-POKY_BBLAYERS_CONF_VERSION = "2"
-
-BBPATH = "${TOPDIR}"
-BBFILES ?= ""
-
-BBLAYERS ?= " \
-  /home/jakub/zybo-os/src/poky/meta \
-  /home/jakub/zybo-os/src/poky/meta-poky \
-  /home/jakub/zybo-os/src/poky/meta-yocto-bsp \
-  /home/jakub/zybo-os/src/meta-arm/meta-arm-toolchain \
-  /home/jakub/zybo-os/src/meta-arm/meta-arm \
-  /home/jakub/zybo-os/src/meta-openembedded/meta-oe \
-  /home/jakub/zybo-os/src/meta-xilinx/meta-xilinx-core \
-  /home/jakub/zybo-os/src/meta-xilinx/meta-xilinx-bsp \
-  /home/jakub/zybo-os/src/meta-xilinx/meta-xilinx-standalone \
-  /home/jakub/zybo-os/src/meta-xilinx-tools \
-  "
-```
-
-W pliku _build/conf/local.conf_ dodanie linii:
-```
-HDF_FILE = "<ścieżka do .xsa>"
-XILINX_WITH_ESW = "xsct"
-XILINX_XSCT_VERSION = "2023.1"
-XILINX_SDK_TOOLCHAIN = "/tools/Xilinx/Vitis/2022.1"
-```
-**Powyższe linijki są skonfigurowane pod mój projekt i wersje, które używam**
 
 Następnie aby uwzględnić konfiguracje sprzętową z pliku _.xsa_:
 
 https://github.com/Xilinx/meta-xilinx-tools/blob/master/README.xsct.bsp.md
 
-Po użyciu komendy _**gen-machineconf**_ w pliku _build/conf/local.conf_ pojawiły się m.in.
-* MACHINE = "<nazwa maszyny podana przy wywołaniu gen-machineconf>"
+<!-- Po użyciu komendy _**gen-machineconf**_ w pliku _build/conf/local.conf_ pojawiły się m.in.
+* MACHINE = "<nazwa maszyny podana przy wywołaniu gen-machineconf>" -->
 
-W pliku _build/conf/local.conf_ dodanie linii:
-```
-IMAGE_FSTYPES += "wic"
-WKS_FILES = "xilinx-default-sd.wks"
-```
+Generowanie maszyny z użyciem skryptu _tools/gen_machine.sh_
+w pliku _build/conf/local.conf_ pojawiły się m.in.
+* MACHINE = "<nazwa maszyny, np. zybo-agh>" 
+
 Następnie:
 
 ```
-bitbake core-image-minimal
+bitbake zybo-agh-image-minimal
 ```
 
-Zatem udało się zbudować system uzwględniając plik .xsa i na jego podstawie stworzyć customową maszynę kompatybilną typowo z naszym projektem.
-<!-- Konfiguracja projektu
+lub 
 
 ```
-petalinux-create --type project --template zynq --name <NAZWA_PROJEKTU>
-cd <NAZWA_PROJEKTU>
-petalinux-config --get-hw-description <SCIEZKA_DO_PLIKU_XSA>
+bitbake zybo-agh-image-base
 ```
-
-Konfiguracja jądra Linux.
-W ``` petalinux-config -c kernel``` włączono obsługę sterowników UIO (Userspace I/O), co pozwala na bezpieczny dostęp do rejestrów customowego IP z poziomu aplikacji w przestrzeni użytkownika.
-
-Modyfikacja Device Tree Source.
-W pliku ``` project-spec/meta-user/recipes-bsp/device-tree/files/system-user.dtsi ``` dodano odpowiedni węzeł, który mapuje IP na sterownik UIO.
-
-```
-/include/ "system-conf.dtsi"
-/ {
-    chosen {
-        bootargs = "console=ttyPS0,115200 uio_pdrv_genirq.of_id=generic-uio";
-    };
-};
-
-&amba_pl {
-    axis_0: axis@40400000 {
-        compatible = "generic-uio";
-        reg = <0x40400000 0x00010000>;
-        interrupts = <0 59 4>;   
-    };
-};
-```
-
-Konfiguracja RootFS.
-W ``` petalinux-config -c rootfs ``` zainstalowano niezbędne pakiety, w tym Python 3.
-
-Kompilacja i pakowanie
-```
-petalinux-build
-petalinux-package --boot --fsbl images/linux/zynq_fsbl.elf --fpga images/linux/system.bit --u-boot --kernel
-``` -->
 
 
 ## 4. Przygotowanie karty SD i uruchomienie
@@ -168,23 +56,29 @@ sudo umount /dev/sdd1
 sudo umount /dev/sdd2
 ```
 
-Skopiowałem na kartę SD plik _/home/jakub/zybo-os/src/build/tmp/deploy/images/<nazwa używanej maszyny>/<nazwa używanej maszyny>.rootfs.wic_
+Ewentualnie _sdd*_ odpowiednio zastąpić
+
+Skopiowanie na kartę SD plik _/home/jakub/zybo-os/src/build/tmp/deploy/images/<nazwa używanej maszyny>/<nazwa budowanego obrazu>-<nazwa używanej maszyny>.rootfs.wic_ 
 
 ```
-sudo dd if=core-image-minimal-<nazwa używanej maszyny>.rootfs.wic of=/dev/sdd bs=1M status=progress
+sudo dd if=<nazwa budowanego obrazu>-<nazwa używanej maszyny>.rootfs.wic of=/dev/sdd bs=1M status=progress
 ```
+
+Przykładowa ścieżka do pliku .wic -  _/home/jakub/zybo-os/src/build/tmp/deploy/images/zybo-agh/zybo-agh-image-minimal-zybo-agh.rootfs.wic_
+
+Skrypt do kopiowania _.wic_ na kartę SD - _tools/flash_wic_to_sd.sh_
 
 <!-- ![Yocto linux](https://i.imgur.com/OsvhZDm.png) -->
 
-![Yocto linux](https://i.imgur.com/MFwtr8m.png)
+<!-- ![Yocto linux](https://i.imgur.com/MFwtr8m.png) -->
 
 ## 5. Komunikacja i testowanie
 Ostatecznym celem było przesłanie danych z licznika do komputera PC.
-* Skrypt na Zybo (_counter_udp_sender.py_): Po uruchomieniu Linuksa na płytce, skrypt w Pythonie odczytuje wartość licznika i wysyła ją przez sieć UDP do komputera PC.
+* Skrypt na Zybo (_data_udp_tx.py_): Po uruchomieniu Linuxa na płytce, skrypt w Pythonie odczytuje wartość licznika i wysyła ją przez sieć UDP do komputera PC.
 * Skrypt na PC (_counter_udp_receiver.py_): Na komputerze PC działa skrypt w Pythonie, który nasłuchuje na porcie UDP i odbiera dane, wyświetlając aktualną wartość licznika.
 
 ## Działanie aplikacji:
-Aktualnie dostosowane skrypty do 1MB transferu to _counter_print.py_ oraz kod napisany w C do testowania w Vitis. Aplikacje działają w trybie pollingu. Pozostałe skrypty to starsze wersje do mniejszego transferu. Proszę je ignorować w obecnym stanie.
+Aktualnie dostosowane skrypty do 1MB transferu to _data_print.py_ oraz kod napisany w C do testowania w Vitis. Aplikacje działają w trybie pollingu. Pozostałe skrypty to starsze wersje do mniejszego transferu. Proszę je ignorować w obecnym stanie.
 
 Aktualny problem:
 Początkowe wartości generowane w PL są ucinane i odbierane dane są "przesunięte" tzn. zamiast 0,1,2,3... jest 12,13,14... Końcowa wartość jest poprawna i zgodna z kodem licznika. Innymi słowy brakuje początkowych wartości. 
