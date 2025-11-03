@@ -1,5 +1,6 @@
 IMAGE_INSTALL += " \
     data-test \
+    data-udp-tx \
     devmem2 \
     kernel-modules \
     ethtool \

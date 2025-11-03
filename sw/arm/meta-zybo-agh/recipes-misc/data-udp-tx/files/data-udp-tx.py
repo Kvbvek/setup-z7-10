@@ -64,7 +64,13 @@ print("Transfer ended, sending data through UDP...")
 # -----------------------------
 mm_ddr.seek(0)
 buf = mm_ddr.read(transfer_len)
-sock.sendto(buf, (UDP_IP, UDP_PORT))
+
+MAX_UDP_SIZE = 60000
+for i in range(0, len(buf), MAX_UDP_SIZE):
+    chunk = buf[i:i + MAX_UDP_SIZE]
+    sock.sendto(chunk, (UDP_IP, UDP_PORT))
+    time.sleep(0.001)
+
 
 print(f"Sent {transfer_len} bytes ({transfer_len/1024:.1f} KB) to {UDP_IP}:{UDP_PORT}")
 
