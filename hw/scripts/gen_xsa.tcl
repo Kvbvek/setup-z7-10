@@ -11,26 +11,30 @@ if {[llength $argv] < 1} {
 
 # --- Set up paths ---
 set hw_dir [lindex $argv 0]
-set proj_name "counter"
-set proj_dir [file join $hw_dir "vivado" $proj_name "${proj_name}.xpr"]
-set export_dir [file join $hw_dir "export"]
-set xsa_name "zybo-agh.xsa"
+set proj_name "zybo-agh"
+set proj_path [file join $hw_dir $proj_name "${proj_name}.xpr"]
+
+# Folder projektu Vivado (gdzie jest .xpr)
+set proj_root [file dirname $proj_path]
+
+# Nazwa wyjściowego XSA
+set xsa_name "${proj_name}.xsa"
+set xsa_out [file join $proj_root $xsa_name]
 
 # --- Check if project exists ---
-if {![file exists $proj_dir]} {
-    puts "ERROR: Project file not found: $proj_dir"
+if {![file exists $proj_path]} {
+    puts "ERROR: Project file not found: $proj_path"
     exit 1
 }
 
-puts "Opening project: $proj_dir"
-open_project $proj_dir
+puts "Opening project: $proj_path"
+open_project $proj_path
 
-set xsa_path [file join $export_dir $xsa_name]
-puts "Exporting XSA: $xsa_path"
+puts "Exporting XSA with bitstream to: $xsa_out"
 
-write_hw_platform -fixed -include_bit -force $xsa_path
+write_hw_platform -fixed -include_bit -force $xsa_out
 
 close_project
 
-puts "✅ XSA successfully generated: $xsa_path"
+puts "✅ XSA successfully generated: $xsa_out"
 exit

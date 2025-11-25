@@ -4,8 +4,7 @@
 *.jou
 *.log
 *.xsa
-hw/vivado/counter
-hw/export/*
+hw/zybo-agh
 
 # Vitis files, dirs
 vitis_workspace/
