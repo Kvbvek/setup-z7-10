@@ -7,7 +7,7 @@ export PATH=$PATH:${ROOTDIR}/sw/arm/meta-xilinx/meta-xilinx-core/gen-machine-con
 
 gen-machineconf \
   --soc-family zynq \
-  --hw-description "${ROOTDIR}/hw/export/zybo-agh.xsa" \
+  --hw-description "${ROOTDIR}/hw/zybo-agh/zybo-agh.xsa" \
   -c "${ROOTDIR}/sw/arm/build/conf/" \
   -l "${ROOTDIR}/sw/arm/build/conf/local.conf" \
   --machine-name zybo-agh \

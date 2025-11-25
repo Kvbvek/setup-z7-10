@@ -1,7 +1,7 @@
 #!/bin/bash -e
 
 XILINX_INSTALL_DIR="/tools/Xilinx"
-PETALINUX_INSTALL_DIR="$HOME"
+# PETALINUX_INSTALL_DIR="$HOME"
 
 VIVADO_VERSION="2022.1"
 VITIS_VERSION="2022.1"
@@ -30,7 +30,7 @@ if [ ! -d build ]; then
     . poky/oe-init-build-env
 
     cat <<-EOF >> conf/local.conf
-HDF_FILE = "<../../../../hw/export/zybo-agh.xsa>"
+HDF_FILE = "<../../../../hw/zybo-agh/zybo-agh.xsa>"
 XILINX_WITH_ESW = "xsct"
 XILINX_XSCT_VERSION = "2023.1"
 XILINX_SDK_TOOLCHAIN = "/tools/Xilinx/Vitis/2022.1"

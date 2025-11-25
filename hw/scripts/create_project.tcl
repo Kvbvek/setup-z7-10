@@ -6,16 +6,17 @@ if {[llength $argv] < 1} {
 set hw_dir [lindex $argv 0]
 puts "HW directory = $hw_dir"
 
-set proj_name "counter"
+set proj_name "zybo-agh"
 
 # --------------------------------------------------------------------------
 # Project create
-create_project $proj_name "$hw_dir/vivado/$proj_name" -part xc7z010clg400-1
+create_project $proj_name "$hw_dir/$proj_name" -part xc7z010clg400-1
 set_property board_part digilentinc.com:zybo-z7-10:part0:1.2 [current_project]
 
 # Add sources - counter
-import_files -norecurse "$hw_dir/src/axis_counter.v"
+import_files -norecurse "$hw_dir/rtl/axis_data_generator.v"
 update_compile_order -fileset sources_1
+
 
 # Create block design
 create_bd_design "design_1"
@@ -36,8 +37,8 @@ endgroup
 create_bd_cell -type ip -vlnv xilinx.com:ip:axi_dma:7.1 axi_dma_0
 set_property -dict [list CONFIG.c_include_sg {0} CONFIG.c_sg_length_width {26} CONFIG.c_sg_include_stscntrl_strm {0}] [get_bd_cells axi_dma_0]
 
-# Add axis_counter to block design
-create_bd_cell -type module -reference axis_counter axis_counter_0
+# Add axis_data_generator to block design
+create_bd_cell -type module -reference axis_data_generator axis_data_generator_0
 
 # Add axis fifo, edit properties
 startgroup
@@ -46,18 +47,10 @@ endgroup
 set_property -dict [list CONFIG.FIFO_DEPTH {4096} CONFIG.FIFO_MODE {1}] [get_bd_cells axis_data_fifo_0]
 set_property -dict [list CONFIG.FIFO_MODE {2}] [get_bd_cells axis_data_fifo_0]
 
-# Connect counter -> FIFO
-#connect_bd_net [get_bd_pins axis_counter_0/tdata] [get_bd_pins axis_data_fifo_0/s_axis_tdata]
-#connect_bd_net [get_bd_pins axis_counter_0/tlast] [get_bd_pins axis_data_fifo_0/s_axis_tlast]
-#connect_bd_net [get_bd_pins axis_counter_0/tvalid] [get_bd_pins axis_data_fifo_0/s_axis_tvalid]
-#connect_bd_net [get_bd_pins axis_data_fifo_0/s_axis_tready] [get_bd_pins axis_counter_0/tready]
-#connect_bd_intf_net [get_bd_intf_pins axis_data_fifo_0/S_AXIS] [get_bd_intf_pins axis_counter_0/interface_axis]
-connect_bd_intf_net [get_bd_intf_pins axis_counter_0/M_AXIS] [get_bd_intf_pins axis_data_fifo_0/S_AXIS]
-connect_bd_net [get_bd_pins axis_data_fifo_0/s_axis_tdata] [get_bd_pins axis_counter_0/M_AXIS_TDATA]
-connect_bd_net [get_bd_pins axis_counter_0/M_AXIS_TLAST] [get_bd_pins axis_data_fifo_0/s_axis_tlast]
-connect_bd_net [get_bd_pins axis_data_fifo_0/s_axis_tready] [get_bd_pins axis_counter_0/M_AXIS_TREADY]
-connect_bd_net [get_bd_pins axis_counter_0/M_AXIS_TVALID] [get_bd_pins axis_data_fifo_0/s_axis_tvalid]
-# apply_bd_automation -rule xilinx.com:bd_rule:clkrst -config { Clk {/processing_system7_0/FCLK_CLK0 (50 MHz)} Freq {100} Ref_Clk0 {} Ref_Clk1 {} Ref_Clk2 {}}  [get_bd_pins axis_counter_0/M_AXIS_ACLK]
+# Connect data_gen -> FIFO
+connect_bd_intf_net [get_bd_intf_pins axis_data_generator_0/M_AXIS] [get_bd_intf_pins axis_data_fifo_0/S_AXIS]
+
+# apply_bd_automation -rule xilinx.com:bd_rule:clkrst -config { Clk {/processing_system7_0/FCLK_CLK0 (50 MHz)} Freq {100} Ref_Clk0 {} Ref_Clk1 {} Ref_Clk2 {}}  [get_bd_pins axis_data_generator_0/M_AXIS_ACLK]
 
 # Automation fod PS
 apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config { Clk_master {Auto} Clk_slave {Auto} Clk_xbar {Auto} Master {/axi_dma_0/M_AXI_MM2S} Slave {/processing_system7_0/S_AXI_HP0} ddr_seg {Auto} intc_ip {New AXI Interconnect} master_apm {0}}  [get_bd_intf_pins processing_system7_0/S_AXI_HP0]
@@ -80,10 +73,25 @@ endgroup
 connect_bd_intf_net [get_bd_intf_pins axis_data_fifo_0/M_AXIS] [get_bd_intf_pins axi_dma_0/S_AXIS_S2MM]
 
 # Automation for fifo, counter
-connect_bd_net [get_bd_pins axis_counter_0/M_AXIS_ACLK] [get_bd_pins processing_system7_0/FCLK_CLK0]
-connect_bd_net [get_bd_pins axis_counter_0/M_AXIS_ARESETN] [get_bd_pins rst_ps7_0_50M/peripheral_aresetn]
+connect_bd_net [get_bd_pins axis_data_generator_0/M_AXIS_ACLK] [get_bd_pins processing_system7_0/FCLK_CLK0]
+connect_bd_net [get_bd_pins axis_data_generator_0/M_AXIS_ARESETN] [get_bd_pins rst_ps7_0_50M/peripheral_aresetn]
 connect_bd_net [get_bd_pins axis_data_fifo_0/s_axis_aclk] [get_bd_pins processing_system7_0/FCLK_CLK0]
 connect_bd_net [get_bd_pins axis_data_fifo_0/s_axis_aresetn] [get_bd_pins rst_ps7_0_50M/peripheral_aresetn]
+
+startgroup
+create_bd_cell -type ip -vlnv xilinx.com:ip:axi_gpio:2.0 axi_gpio_0
+endgroup
+set_property -dict [list CONFIG.C_GPIO_WIDTH {1} CONFIG.C_ALL_OUTPUTS {1}] [get_bd_cells axi_gpio_0]
+connect_bd_net [get_bd_pins axi_gpio_0/gpio_io_o] [get_bd_pins axis_data_generator_0/enable]
+apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config { Clk_master {/processing_system7_0/FCLK_CLK0 (50 MHz)} Clk_slave {Auto} Clk_xbar {/processing_system7_0/FCLK_CLK0 (50 MHz)} Master {/processing_system7_0/M_AXI_GP0} Slave {/axi_gpio_0/S_AXI} ddr_seg {Auto} intc_ip {/ps7_0_axi_periph} master_apm {0}}  [get_bd_intf_pins axi_gpio_0/S_AXI]
+
+startgroup
+create_bd_cell -type ip -vlnv xilinx.com:ip:axi_gpio:2.0 axi_gpio_1
+endgroup
+set_property -dict [list CONFIG.C_GPIO_WIDTH {32} CONFIG.C_ALL_OUTPUTS {1}] [get_bd_cells axi_gpio_1]
+connect_bd_net [get_bd_pins axi_gpio_1/gpio_io_o] [get_bd_pins axis_data_generator_0/length]
+apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config { Clk_master {/processing_system7_0/FCLK_CLK0 (50 MHz)} Clk_slave {Auto} Clk_xbar {/processing_system7_0/FCLK_CLK0 (50 MHz)} Master {/processing_system7_0/M_AXI_GP0} Slave {/axi_gpio_1/S_AXI} ddr_seg {Auto} intc_ip {/ps7_0_axi_periph} master_apm {0}}  [get_bd_intf_pins axi_gpio_1/S_AXI]
+
 
 # ------------------------------
 regenerate_bd_layout
@@ -91,7 +99,7 @@ save_bd_design
 validate_bd_design
 
 # Create HDL wrapper
-make_wrapper -files [get_files "$hw_dir/vivado/counter/counter.srcs/sources_1/bd/design_1/design_1.bd"] -top
-add_files -norecurse "$hw_dir/vivado/counter/counter.gen/sources_1/bd/design_1/hdl/design_1_wrapper.v"
+make_wrapper -files [get_files "$hw_dir/$proj_name/$proj_name.srcs/sources_1/bd/design_1/design_1.bd"] -top
+add_files -norecurse "$hw_dir/$proj_name/$proj_name.gen/sources_1/bd/design_1/hdl/design_1_wrapper.v"
 
 exit
