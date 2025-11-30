@@ -2,7 +2,7 @@ setenv bootargs "console=ttyPS0,115200 root=/dev/mmcblk0p2 rw rootwait earlyprin
 
 echo "=== Load FPGA bitstream ==="
 fatload mmc 0:1 0x10000000 fpga.bin
-fpga loadb 0 0x10000000 ${filesize}
+fpga load 0 0x10000000 ${filesize}
 
 echo "=== Load kernel and dtb ==="
 fatload mmc 0:1 0x02000000 zImage

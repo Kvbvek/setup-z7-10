@@ -28,7 +28,7 @@ Pierwszym etapem było stworzenie projektu sprzętowego.
 
 ## **Block design:**
 
-![Block design screenshot](https://i.imgur.com/Ip2ZIIK.png)
+![Block design screenshot](https://i.imgur.com/mGzRUkz.png)
 
 ## 2. Konfiguracja i budowanie obrazu systemu z użyciem Yocto/poky
 
@@ -85,6 +85,6 @@ Ostatecznym celem było przesłanie danych z PL do komputera PC.
 
 ## Działanie aplikacji:
 
-W celu przeprowadzenia większych transferów niż np. 100MB czy 1GB prawdopodobnie potrzebne będą modyfikację ponieważ length buffer w AXI DMA jest ustawiany na 2^26 czyli około 64MB, co jest maksymalną wartością. Transfer w jednym "rzucie" będzie niemożliwy i trzeba by np. rozwinąć projekt w Vivado aby większe ilości danych pakował w transfery po ~64MB.
+W celu przeprowadzenia większych transferów niż np. 100MB czy 1GB potrzebne będą modyfikację ponieważ length buffer w AXI DMA jest ustawiany na 2^26 czyli około 64MB, co jest maksymalną wartością. Transfer w jednym "rzucie" będzie niemożliwy i trzeba by np. rozwinąć projekt w Vivado aby większe ilości danych pakował w transfery po max ~64MB.
 
-![Działanie projektu](https://i.imgur.com/nticLos.png)
+![Działanie projektu](https://i.imgur.com/kKNU5jt.png)
