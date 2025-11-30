@@ -13,8 +13,9 @@ set proj_name "zybo-agh"
 create_project $proj_name "$hw_dir/$proj_name" -part xc7z010clg400-1
 set_property board_part digilentinc.com:zybo-z7-10:part0:1.2 [current_project]
 
-# Add sources - counter
+# Add sources
 import_files -norecurse "$hw_dir/rtl/axis_data_generator.v"
+import_files -norecurse "$hw_dir/rtl/reg_ctrl.v"
 update_compile_order -fileset sources_1
 
 
@@ -78,19 +79,25 @@ connect_bd_net [get_bd_pins axis_data_generator_0/M_AXIS_ARESETN] [get_bd_pins r
 connect_bd_net [get_bd_pins axis_data_fifo_0/s_axis_aclk] [get_bd_pins processing_system7_0/FCLK_CLK0]
 connect_bd_net [get_bd_pins axis_data_fifo_0/s_axis_aresetn] [get_bd_pins rst_ps7_0_50M/peripheral_aresetn]
 
-startgroup
-create_bd_cell -type ip -vlnv xilinx.com:ip:axi_gpio:2.0 axi_gpio_0
-endgroup
-set_property -dict [list CONFIG.C_GPIO_WIDTH {1} CONFIG.C_ALL_OUTPUTS {1}] [get_bd_cells axi_gpio_0]
-connect_bd_net [get_bd_pins axi_gpio_0/gpio_io_o] [get_bd_pins axis_data_generator_0/enable]
-apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config { Clk_master {/processing_system7_0/FCLK_CLK0 (50 MHz)} Clk_slave {Auto} Clk_xbar {/processing_system7_0/FCLK_CLK0 (50 MHz)} Master {/processing_system7_0/M_AXI_GP0} Slave {/axi_gpio_0/S_AXI} ddr_seg {Auto} intc_ip {/ps7_0_axi_periph} master_apm {0}}  [get_bd_intf_pins axi_gpio_0/S_AXI]
+# axi Slave
+create_bd_cell -type module -reference reg_ctrl reg_ctrl_0
+connect_bd_net [get_bd_pins reg_ctrl_0/enable_o] [get_bd_pins axis_data_generator_0/enable]
+connect_bd_net [get_bd_pins reg_ctrl_0/length_o] [get_bd_pins axis_data_generator_0/length]
+apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config { Clk_master {/processing_system7_0/FCLK_CLK0 (50 MHz)} Clk_slave {Auto} Clk_xbar {/processing_system7_0/FCLK_CLK0 (50 MHz)} Master {/processing_system7_0/M_AXI_GP0} Slave {/reg_ctrl_0/S_AXI} ddr_seg {Auto} intc_ip {/ps7_0_axi_periph} master_apm {0}}  [get_bd_intf_pins reg_ctrl_0/S_AXI]
 
-startgroup
-create_bd_cell -type ip -vlnv xilinx.com:ip:axi_gpio:2.0 axi_gpio_1
-endgroup
-set_property -dict [list CONFIG.C_GPIO_WIDTH {32} CONFIG.C_ALL_OUTPUTS {1}] [get_bd_cells axi_gpio_1]
-connect_bd_net [get_bd_pins axi_gpio_1/gpio_io_o] [get_bd_pins axis_data_generator_0/length]
-apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config { Clk_master {/processing_system7_0/FCLK_CLK0 (50 MHz)} Clk_slave {Auto} Clk_xbar {/processing_system7_0/FCLK_CLK0 (50 MHz)} Master {/processing_system7_0/M_AXI_GP0} Slave {/axi_gpio_1/S_AXI} ddr_seg {Auto} intc_ip {/ps7_0_axi_periph} master_apm {0}}  [get_bd_intf_pins axi_gpio_1/S_AXI]
+# startgroup
+# create_bd_cell -type ip -vlnv xilinx.com:ip:axi_gpio:2.0 axi_gpio_0
+# endgroup
+#set_property -dict [list CONFIG.C_GPIO_WIDTH {1} CONFIG.C_ALL_OUTPUTS {1}] [get_bd_cells axi_gpio_0]
+#connect_bd_net [get_bd_pins axi_gpio_0/gpio_io_o] [get_bd_pins axis_data_generator_0/enable]
+#apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config { Clk_master {/processing_system7_0/FCLK_CLK0 (50 MHz)} Clk_slave {Auto} Clk_xbar {/processing_system7_0/FCLK_CLK0 (50 MHz)} Master {/processing_system7_0/M_AXI_GP0} Slave {/axi_gpio_0/S_AXI} ddr_seg {Auto} intc_ip {/ps7_0_axi_periph} master_apm {0}}  [get_bd_intf_pins axi_gpio_0/S_AXI]
+
+#startgroup
+#create_bd_cell -type ip -vlnv xilinx.com:ip:axi_gpio:2.0 axi_gpio_1
+#endgroup
+#set_property -dict [list CONFIG.C_GPIO_WIDTH {32} CONFIG.C_ALL_OUTPUTS {1}] [get_bd_cells axi_gpio_1]
+#connect_bd_net [get_bd_pins axi_gpio_1/gpio_io_o] [get_bd_pins axis_data_generator_0/length]
+#apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config { Clk_master {/processing_system7_0/FCLK_CLK0 (50 MHz)} Clk_slave {Auto} Clk_xbar {/processing_system7_0/FCLK_CLK0 (50 MHz)} Master {/processing_system7_0/M_AXI_GP0} Slave {/axi_gpio_1/S_AXI} ddr_seg {Auto} intc_ip {/ps7_0_axi_periph} master_apm {0}}  [get_bd_intf_pins axi_gpio_1/S_AXI]
 
 
 # ------------------------------
