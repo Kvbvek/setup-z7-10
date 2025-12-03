@@ -1,0 +1,21 @@
+addrmap csr {
+    reg {
+        name = "data_generator enable register";
+
+        field {
+            sw = rw;
+            hw = r;
+        } enable[0:0] = 0;
+
+    } DG_ENABLE @ 0x00;
+
+    reg {
+        name = "data_generator length register";
+
+        field {
+            sw = rw;
+            hw = r;
+        } length[31:0] = 0;
+
+    } DG_LENGTH @ 0x04;
+};

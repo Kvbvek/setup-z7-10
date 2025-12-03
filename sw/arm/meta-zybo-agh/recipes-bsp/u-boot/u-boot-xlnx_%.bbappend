@@ -16,8 +16,7 @@ do_compile:append() {
         -d ${WORKDIR}/boot.txt ${WORKDIR}/boot.scr
 }
 
-do_install:append() {
-    install -m 0644 ${WORKDIR}/boot.scr ${DEPLOYDIR}/boot.scr
+do_deploy:append() {
     install -m 0644 ${WORKDIR}/fpga.bin ${DEPLOYDIR}/fpga.bin
 }
 
