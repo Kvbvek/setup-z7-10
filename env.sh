@@ -1,11 +1,9 @@
 #!/bin/bash -e
 
 XILINX_INSTALL_DIR="/tools/Xilinx"
-# PETALINUX_INSTALL_DIR="$HOME"
 
 VIVADO_VERSION="2022.1"
 VITIS_VERSION="2022.1"
-# PETALINUX_VERSION="2022.1"
 
 export ROOTDIR=$(pwd)
 
@@ -18,10 +16,6 @@ source "${VIVADO_SETTINGS_PATH}"
 VITIS_SETTINGS_PATH="${XILINX_INSTALL_DIR}/Vitis/${VITIS_VERSION}/settings64.sh"
 echo "  - Sourcing Vitis ${VITIS_VERSION}..."
 source "${VITIS_SETTINGS_PATH}"
-
-# PETALINUX_SETTINGS_PATH="${PETALINUX_INSTALL_DIR}/petalinux/${PETALINUX_VERSION}/settings.sh"
-# echo "  - Sourcing PetaLinux ${PETALINUX_VERSION}..."
-# source "${PETALINUX_SETTINGS_PATH}"
 
 cd "${ROOTDIR}/sw/arm"
 
@@ -37,6 +31,7 @@ XILINX_SDK_TOOLCHAIN = "/tools/Xilinx/Vitis/2022.1"
 DISTRO = "zybo-agh-poky"
 IMAGE_FSTYPES += "wic"
 WKS_FILES = "xilinx-default-sd.wks"
+IMAGE_INSTALL:append = " fpga"
 EOF
 
     bitbake-layers add-layer ../meta-arm/meta-arm-toolchain
