@@ -25,7 +25,8 @@ module csr_wrapper (
     output logic [1:0] s_axil_rresp,
 
     output logic       DG_ENABLE_value,
-    output logic [31:0] DG_LENGTH_value
+    output logic [31:0] DG_LENGTH_value,
+    output logic       SEL_value
 );
 
     csr_pkg::csr__out_t hwif_net;
@@ -58,5 +59,6 @@ module csr_wrapper (
 
     assign DG_ENABLE_value    = hwif_net.DG_ENABLE.enable.value;
     assign DG_LENGTH_value    = hwif_net.DG_LENGTH.length.value;
+    assign SEL_value          = hwif_net.SEL.sel.value;
 
 endmodule

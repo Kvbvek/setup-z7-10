@@ -1,80 +1,88 @@
 #!/usr/bin/env python3
 import socket
 import numpy as np
+import time
 
 UDP_IP = "0.0.0.0"
 UDP_PORT = 5005
 MAX_PACKET_SIZE = 65535
 
-# Number of 32-bit values we want to receive
-TARGET_COUNT = 262144   # 256k uint32 values
+# Max chunk similar to your PC TX code
+MAX_UDP_SIZE = 1024
 
+TARGET_COUNT = int(8 * 1024 * 1024 / 4)
 
 def verify_data(arr):
-    """
-    Verify that the received data matches a perfect sequence:
-    0, 1, 2, ..., TARGET_COUNT-1.
-
-    Returns:
-        (True, None) if data is correct,
-        (False, index) if a mismatch occurs.
-    """
     expected = np.arange(TARGET_COUNT, dtype=np.uint32)
     diff = arr != expected
 
     if not np.any(diff):
         return True, None
 
-    # Find the first mismatch index
     idx = np.argmax(diff)
     return False, idx
 
 
-sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-sock.bind((UDP_IP, UDP_PORT))
+# --- RECEIVE SOCKET ---
+recv_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+recv_sock.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, 8*1024*1024)
+recv_sock.bind(("0.0.0.0", UDP_PORT))
 
 print(f"Listening on UDP port {UDP_PORT}...")
 print(f"Expecting {TARGET_COUNT} uint32 values...\n")
 
-# Preallocated buffer for all incoming data
 buffer = np.zeros(TARGET_COUNT, dtype=np.uint32)
-
 write_index = 0
 
-while write_index < TARGET_COUNT:
-    data, addr = sock.recvfrom(MAX_PACKET_SIZE)
+sender_ip = None
+sender_port = None
 
-    # Convert raw bytes to uint32 array (little endian)
+while write_index < TARGET_COUNT:
+    data, addr = recv_sock.recvfrom(MAX_PACKET_SIZE)
+
+    if sender_ip is None:
+        sender_ip, sender_port = addr
+        print(f"\nData source detected: {sender_ip}:{sender_port}")
+
     nums = np.frombuffer(data, dtype="<u4")
     count = len(nums)
 
-    # Compute where to stop writing to avoid buffer overflow
     end_index = write_index + count
     if end_index > TARGET_COUNT:
         end_index = TARGET_COUNT
         count = end_index - write_index
         nums = nums[:count]
 
-    # Store values in buffer
     buffer[write_index:end_index] = nums
     write_index = end_index
 
-    print(f"Received {count} numbers from {addr}, total = {write_index}/{TARGET_COUNT}")
+    # print(f"Received {count} numbers from {addr}, total = {write_index}/{TARGET_COUNT}")
 
-print("\nDONE — received all requested values!")
-print("--------------------------------------")
-print("Total numbers received:", write_index)
-print("Buffer shape:", buffer.shape)
-print("Buffer dtype:", buffer.dtype)
+print("\nDONE — received complete buffer")
 
-print("\nFirst 5 numbers:", buffer[:5])
-print("Last 5 numbers:", buffer[-5:])
 
-# --- Data verification ---
+# --- VERIFICATION ---
 print("\nVerifying data integrity...")
 ok, idx = verify_data(buffer)
 
 if ok:
-    print("VERIFICATION OK — data is a perfect sequence 0..262143")
+    print("VERIFICATION OK — data is perfect sequence")
 else:
-    print(f"VERIFICATION FAILED — mismatch at index {idx}: got {buffer[idx]}, expected {idx}")
+    print(f"VERIFICATION FAILED at index {idx}: got {buffer[idx]}, expected {idx}")
+
+
+# --- SEND BACK THE DATA (ECHO) ---
+print("\nSending buffer back via UDP...")
+
+send_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+
+raw_bytes = buffer.tobytes()
+total_len = len(raw_bytes)
+
+for i in range(0, total_len, MAX_UDP_SIZE):
+    chunk = raw_bytes[i:i + MAX_UDP_SIZE]
+    send_sock.sendto(chunk, (sender_ip, 5005))
+    time.sleep(0.001)  # throttle (optional)
+
+print(f"Sent {total_len} bytes ({total_len/1024:.1f} KB) to {sender_ip}:{sender_port}")
+print("DONE.")

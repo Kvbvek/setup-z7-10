@@ -1,4 +1,5 @@
 addrmap csr {
+
     reg {
         name = "data_generator enable register";
 
@@ -18,4 +19,16 @@ addrmap csr {
         } length[31:0] = 0;
 
     } DG_LENGTH @ 0x04;
+
+    reg {
+        name = "data source select register";
+        desc = "Selects data source for DMA: 0=DG, 1=external module";
+
+        field {
+            sw = rw;
+            hw = r;
+        } sel[0:0] = 0;
+
+    } SEL @ 0x08;
+
 };
