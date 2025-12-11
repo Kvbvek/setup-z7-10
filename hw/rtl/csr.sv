@@ -7,7 +7,7 @@ module csr (
 
         output logic s_axil_awready,
         input wire s_axil_awvalid,
-        input wire [3:0] s_axil_awaddr,
+        input wire [2:0] s_axil_awaddr,
         input wire [2:0] s_axil_awprot,
         output logic s_axil_wready,
         input wire s_axil_wvalid,
@@ -18,7 +18,7 @@ module csr (
         output logic [1:0] s_axil_bresp,
         output logic s_axil_arready,
         input wire s_axil_arvalid,
-        input wire [3:0] s_axil_araddr,
+        input wire [2:0] s_axil_araddr,
         input wire [2:0] s_axil_arprot,
         input wire s_axil_rready,
         output logic s_axil_rvalid,
@@ -33,7 +33,7 @@ module csr (
     //--------------------------------------------------------------------------
     logic cpuif_req;
     logic cpuif_req_is_wr;
-    logic [3:0] cpuif_addr;
+    logic [2:0] cpuif_addr;
     logic [31:0] cpuif_wr_data;
     logic [31:0] cpuif_wr_biten;
     logic cpuif_req_stall_wr;
@@ -50,10 +50,10 @@ module csr (
     logic [1:0] axil_n_in_flight;
     logic axil_prev_was_rd;
     logic axil_arvalid;
-    logic [3:0] axil_araddr;
+    logic [2:0] axil_araddr;
     logic axil_ar_accept;
     logic axil_awvalid;
-    logic [3:0] axil_awaddr;
+    logic [2:0] axil_awaddr;
     logic axil_wvalid;
     logic [31:0] axil_wdata;
     logic [3:0] axil_wstrb;
@@ -131,17 +131,17 @@ module csr (
             if(axil_arvalid && !axil_prev_was_rd) begin
                 cpuif_req = '1;
                 cpuif_req_is_wr = '0;
-                cpuif_addr = {axil_araddr[3:2], 2'b0};
+                cpuif_addr = {axil_araddr[2:2], 2'b0};
                 if(!cpuif_req_stall_rd) axil_ar_accept = '1;
             end else if(axil_awvalid && axil_wvalid) begin
                 cpuif_req = '1;
                 cpuif_req_is_wr = '1;
-                cpuif_addr = {axil_awaddr[3:2], 2'b0};
+                cpuif_addr = {axil_awaddr[2:2], 2'b0};
                 if(!cpuif_req_stall_wr) axil_aw_accept = '1;
             end else if(axil_arvalid) begin
                 cpuif_req = '1;
                 cpuif_req_is_wr = '0;
-                cpuif_addr = {axil_araddr[3:2], 2'b0};
+                cpuif_addr = {axil_araddr[2:2], 2'b0};
                 if(!cpuif_req_stall_rd) axil_ar_accept = '1;
             end
         end
@@ -228,7 +228,6 @@ module csr (
     typedef struct {
         logic DG_ENABLE;
         logic DG_LENGTH;
-        logic SEL;
     } decoded_reg_strb_t;
     decoded_reg_strb_t decoded_reg_strb;
     logic decoded_err;
@@ -242,9 +241,8 @@ module csr (
         automatic logic is_invalid_rw;
         is_valid_addr = '1; // No error checking on valid address access
         is_invalid_rw = '0;
-        decoded_reg_strb.DG_ENABLE = cpuif_req_masked & (cpuif_addr == 4'h0);
-        decoded_reg_strb.DG_LENGTH = cpuif_req_masked & (cpuif_addr == 4'h4);
-        decoded_reg_strb.SEL = cpuif_req_masked & (cpuif_addr == 4'h8);
+        decoded_reg_strb.DG_ENABLE = cpuif_req_masked & (cpuif_addr == 3'h0);
+        decoded_reg_strb.DG_LENGTH = cpuif_req_masked & (cpuif_addr == 3'h4);
         decoded_err = (~is_valid_addr | is_invalid_rw) & decoded_req;
     end
 
@@ -270,12 +268,6 @@ module csr (
                 logic load_next;
             } length;
         } DG_LENGTH;
-        struct {
-            struct {
-                logic next;
-                logic load_next;
-            } sel;
-        } SEL;
     } field_combo_t;
     field_combo_t field_combo;
 
@@ -290,11 +282,6 @@ module csr (
                 logic [31:0] value;
             } length;
         } DG_LENGTH;
-        struct {
-            struct {
-                logic value;
-            } sel;
-        } SEL;
     } field_storage_t;
     field_storage_t field_storage;
 
@@ -344,29 +331,6 @@ module csr (
         end
     end
     assign hwif_out.DG_LENGTH.length.value = field_storage.DG_LENGTH.length.value;
-    // Field: csr.SEL.sel
-    always_comb begin
-        automatic logic [0:0] next_c;
-        automatic logic load_next_c;
-        next_c = field_storage.SEL.sel.value;
-        load_next_c = '0;
-        if(decoded_reg_strb.SEL && decoded_req_is_wr) begin // SW write
-            next_c = (field_storage.SEL.sel.value & ~decoded_wr_biten[0:0]) | (decoded_wr_data[0:0] & decoded_wr_biten[0:0]);
-            load_next_c = '1;
-        end
-        field_combo.SEL.sel.next = next_c;
-        field_combo.SEL.sel.load_next = load_next_c;
-    end
-    always_ff @(posedge clk) begin
-        if(~rst_n) begin
-            field_storage.SEL.sel.value <= 1'h0;
-        end else begin
-            if(field_combo.SEL.sel.load_next) begin
-                field_storage.SEL.sel.value <= field_combo.SEL.sel.next;
-            end
-        end
-    end
-    assign hwif_out.SEL.sel.value = field_storage.SEL.sel.value;
 
     //--------------------------------------------------------------------------
     // Write response
@@ -384,12 +348,10 @@ module csr (
     logic [31:0] readback_data;
 
     // Assign readback values to a flattened array
-    logic [31:0] readback_array[3];
+    logic [31:0] readback_array[2];
     assign readback_array[0][0:0] = (decoded_reg_strb.DG_ENABLE && !decoded_req_is_wr) ? field_storage.DG_ENABLE.enable.value : '0;
     assign readback_array[0][31:1] = '0;
     assign readback_array[1][31:0] = (decoded_reg_strb.DG_LENGTH && !decoded_req_is_wr) ? field_storage.DG_LENGTH.length.value : '0;
-    assign readback_array[2][0:0] = (decoded_reg_strb.SEL && !decoded_req_is_wr) ? field_storage.SEL.sel.value : '0;
-    assign readback_array[2][31:1] = '0;
 
     // Reduce the array
     always_comb begin
@@ -397,7 +359,7 @@ module csr (
         readback_done = decoded_req & ~decoded_req_is_wr;
         readback_err = '0;
         readback_data_var = '0;
-        for(int i=0; i<3; i++) readback_data_var |= readback_array[i];
+        for(int i=0; i<2; i++) readback_data_var |= readback_array[i];
         readback_data = readback_data_var;
     end
 

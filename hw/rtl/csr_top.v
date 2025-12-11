@@ -32,8 +32,7 @@ module csr_top (
     output wire [1:0]  s_axil_rresp,
     
     output wire        DG_ENABLE_value,
-    output wire [31:0] DG_LENGTH_value,
-    output wire        SEL_value
+    output wire [31:0] DG_LENGTH_value
 );
 
     csr_wrapper u_csr_wrapper (
@@ -65,8 +64,7 @@ module csr_top (
         .s_axil_rresp   (s_axil_rresp),
 
         .DG_ENABLE_value  (DG_ENABLE_value),
-        .DG_LENGTH_value (DG_LENGTH_value),
-        .SEL_value (SEL_value)
+        .DG_LENGTH_value (DG_LENGTH_value)
     );
 
 endmodule

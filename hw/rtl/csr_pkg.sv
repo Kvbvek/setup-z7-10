@@ -4,8 +4,8 @@
 package csr_pkg;
 
     localparam CSR_DATA_WIDTH = 32;
-    localparam CSR_MIN_ADDR_WIDTH = 4;
-    localparam CSR_SIZE = 'hc;
+    localparam CSR_MIN_ADDR_WIDTH = 3;
+    localparam CSR_SIZE = 'h8;
 
     typedef struct {
         logic value;
@@ -24,16 +24,7 @@ package csr_pkg;
     } csr__DG_LENGTH__out_t;
 
     typedef struct {
-        logic value;
-    } csr__SEL__sel__out_t;
-
-    typedef struct {
-        csr__SEL__sel__out_t sel;
-    } csr__SEL__out_t;
-
-    typedef struct {
         csr__DG_ENABLE__out_t DG_ENABLE;
         csr__DG_LENGTH__out_t DG_LENGTH;
-        csr__SEL__out_t SEL;
     } csr__out_t;
 endpackage
