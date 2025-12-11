@@ -6,11 +6,9 @@ import time
 UDP_IP = "0.0.0.0"
 UDP_PORT = 5005
 MAX_PACKET_SIZE = 65535
-
-# Max chunk similar to your PC TX code
 MAX_UDP_SIZE = 1024
 
-TARGET_COUNT = int(8 * 1024 * 1024 / 4)
+TARGET_COUNT = int(8 * 1024 * 1024 / 4)   # number of uint32 words
 
 def verify_data(arr):
     expected = np.arange(TARGET_COUNT, dtype=np.uint32)
@@ -23,7 +21,9 @@ def verify_data(arr):
     return False, idx
 
 
-# --- RECEIVE SOCKET ---
+# -------------------------------------------------------------
+# 1) RECEIVE INITIAL BUFFER FROM FPGA
+# -------------------------------------------------------------
 recv_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 recv_sock.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, 8*1024*1024)
 recv_sock.bind(("0.0.0.0", UDP_PORT))
@@ -56,12 +56,12 @@ while write_index < TARGET_COUNT:
     buffer[write_index:end_index] = nums
     write_index = end_index
 
-    # print(f"Received {count} numbers from {addr}, total = {write_index}/{TARGET_COUNT}")
-
-print("\nDONE — received complete buffer")
+print("\nDONE — received initial buffer from FPGA!")
 
 
-# --- VERIFICATION ---
+# -------------------------------------------------------------
+# 2) VERIFICATION
+# -------------------------------------------------------------
 print("\nVerifying data integrity...")
 ok, idx = verify_data(buffer)
 
@@ -71,7 +71,9 @@ else:
     print(f"VERIFICATION FAILED at index {idx}: got {buffer[idx]}, expected {idx}")
 
 
-# --- SEND BACK THE DATA (ECHO) ---
+# -------------------------------------------------------------
+# 3) SEND BUFFER BACK TO FPGA (ECHO)
+# -------------------------------------------------------------
 print("\nSending buffer back via UDP...")
 
 send_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -81,8 +83,40 @@ total_len = len(raw_bytes)
 
 for i in range(0, total_len, MAX_UDP_SIZE):
     chunk = raw_bytes[i:i + MAX_UDP_SIZE]
-    send_sock.sendto(chunk, (sender_ip, 5005))
-    time.sleep(0.001)  # throttle (optional)
+    send_sock.sendto(chunk, (sender_ip, UDP_PORT))
+    time.sleep(0.001)
 
-print(f"Sent {total_len} bytes ({total_len/1024:.1f} KB) to {sender_ip}:{sender_port}")
-print("DONE.")
+print(f"Sent {total_len} bytes ({total_len/1024:.1f} KB) to FPGA")
+print("WAITING FOR PROCESSED DATA...\n")
+
+
+# -------------------------------------------------------------
+# 4) RECEIVE PROCESSED DATA BACK FROM FPGA
+# -------------------------------------------------------------
+processed = np.zeros(TARGET_COUNT, dtype=np.uint32)
+processed_index = 0
+
+while processed_index < TARGET_COUNT:
+    data, addr = recv_sock.recvfrom(MAX_PACKET_SIZE)
+
+    nums = np.frombuffer(data, dtype="<u4")
+    count = len(nums)
+
+    end_index = processed_index + count
+    if end_index > TARGET_COUNT:
+        end_index = TARGET_COUNT
+        count = end_index - processed_index
+        nums = nums[:count]
+
+    processed[processed_index:end_index] = nums
+    processed_index = end_index
+
+print("DONE — received processed buffer from FPGA!\n")
+
+
+# -------------------------------------------------------------
+# 5) PRINT FIRST/LAST VALUES
+# -------------------------------------------------------------
+print("Processed data — first 5 values:", processed[:5])
+print("Processed data — last 5 values: ", processed[-5:])
+print("\nDONE.")
