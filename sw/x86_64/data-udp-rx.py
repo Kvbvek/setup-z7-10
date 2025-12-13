@@ -8,7 +8,7 @@ UDP_PORT = 5005
 MAX_PACKET_SIZE = 65535
 MAX_UDP_SIZE = 1024
 
-TARGET_COUNT = int(8 * 1024 * 1024 / 4)   # number of uint32 words
+TARGET_COUNT = int(16*1024*1024 / 4)   # number of uint32 words
 
 def verify_data(arr):
     expected = np.arange(TARGET_COUNT, dtype=np.uint32)
@@ -20,12 +20,9 @@ def verify_data(arr):
     idx = np.argmax(diff)
     return False, idx
 
-
-# -------------------------------------------------------------
-# 1) RECEIVE INITIAL BUFFER FROM FPGA
-# -------------------------------------------------------------
+# Receive initial data from fpga
 recv_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-recv_sock.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, 8*1024*1024)
+recv_sock.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, 16*1024*1024)
 recv_sock.bind(("0.0.0.0", UDP_PORT))
 
 print(f"Listening on UDP port {UDP_PORT}...")
@@ -59,9 +56,7 @@ while write_index < TARGET_COUNT:
 print("\nDONE — received initial buffer from FPGA!")
 
 
-# -------------------------------------------------------------
-# 2) VERIFICATION
-# -------------------------------------------------------------
+# Verification
 print("\nVerifying data integrity...")
 ok, idx = verify_data(buffer)
 
@@ -71,9 +66,7 @@ else:
     print(f"VERIFICATION FAILED at index {idx}: got {buffer[idx]}, expected {idx}")
 
 
-# -------------------------------------------------------------
-# 3) SEND BUFFER BACK TO FPGA (ECHO)
-# -------------------------------------------------------------
+# Send back to fpga
 print("\nSending buffer back via UDP...")
 
 send_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -90,9 +83,7 @@ print(f"Sent {total_len} bytes ({total_len/1024:.1f} KB) to FPGA")
 print("WAITING FOR PROCESSED DATA...\n")
 
 
-# -------------------------------------------------------------
-# 4) RECEIVE PROCESSED DATA BACK FROM FPGA
-# -------------------------------------------------------------
+# Receive processed data back from fpga
 processed = np.zeros(TARGET_COUNT, dtype=np.uint32)
 processed_index = 0
 
@@ -114,9 +105,7 @@ while processed_index < TARGET_COUNT:
 print("DONE — received processed buffer from FPGA!\n")
 
 
-# -------------------------------------------------------------
-# 5) PRINT FIRST/LAST VALUES
-# -------------------------------------------------------------
+# Print few values
 print("Processed data — first 5 values:", processed[:5])
 print("Processed data — last 5 values: ", processed[-5:])
 print("\nDONE.")

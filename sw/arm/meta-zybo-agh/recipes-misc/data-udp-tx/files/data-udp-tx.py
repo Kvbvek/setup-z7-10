@@ -7,8 +7,8 @@ DMA_BASE = 0x40400000
 MAP_SIZE = 0x10000
 
 TX_BUF_ADDR = 0x0A000000
-RX_BUF_ADDR = 0x0B000000
-BUF_SIZE = 8 * 1024 * 1024
+RX_BUF_ADDR = TX_BUF_ADDR + 0x04000000
+BUF_SIZE = 16*1024*1024
 
 # S2MM (Device->Memory) registers
 S2MM_DMACR   = 0x30
@@ -79,20 +79,19 @@ def sw_wr(off, val):
 sw_wr(SWITCH_MUX, SWITCH_GEN_SRC)
 sw_wr(SWITCH_COMMIT, SWITCH_COMMIT_WRITE)
 
-# 1) Existing flow: fill DDR from generator and send to PC (unchanged)
-print("Reset S2MM DMA (initial generator->DDR)...")
+# Initial S2MM
+print("Reset S2MM DMA (initial generator)...")
 dma_wr(S2MM_DMACR, 0x4)
 time.sleep(0.01)
 dma_wr(S2MM_DMACR, 0x1)
 
-# Ensure S2MM writes to RX_BUF_ADDR
 dma_wr(S2MM_DA, RX_BUF_ADDR)
 
 transfer_len = BUF_SIZE
 num_words = transfer_len // 4
+
 print(f"AXI-Lite: LENGTH = {num_words} words")
 axil_wr(AXIL_LENGTH, num_words)
-
 print("AXI-Lite: ENABLE = 1")
 axil_wr(AXIL_CONTROL, 1)
 
@@ -114,17 +113,15 @@ mm_rx.seek(0)
 buf = mm_rx.read(transfer_len)
 
 MAX_UDP_SIZE = 1024
-send_sock.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, 8 * 1024 * 1024)
+send_sock.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, 16*1024*1024)
 
 for i in range(0, len(buf), MAX_UDP_SIZE):
     send_sock.sendto(buf[i:i + MAX_UDP_SIZE], (UDP_IP, UDP_PORT))
-    time.sleep(0.001)
+    # time.sleep(0.001)
 
 print(f"Sent {transfer_len} bytes to {UDP_IP}:{UDP_PORT}")
 
-# ---------------------------
-# 2) Receive echoed buffer back from PC
-# ---------------------------
+# Receive echoed buffer back from PC
 print("\nWaiting to receive echoed data back from PC...")
 received = 0
 rx_buf = bytearray(BUF_SIZE)
@@ -147,7 +144,7 @@ arr = np.frombuffer(rx_buf, dtype=np.uint32)
 print("First 5 values (received):", arr[:5])
 print("Last 5 values (received):", arr[-5:])
 
-# 3) Write received data into DDR (source for MM2S)
+# Write received data into DDR (source for MM2S)
 print("Writing received data into DDR at BUF_ADDR...")
 mm_tx.seek(0)
 mm_tx.write(rx_buf)
@@ -158,8 +155,6 @@ time.sleep(0.01)
 sw_wr(SWITCH_MUX, SWITCH_MOD_SRC)
 sw_wr(SWITCH_COMMIT, SWITCH_COMMIT_WRITE)
 
-
-#    We start S2MM before MM2S to ensure it's ready to receive data.
 print("Reset S2MM DMA for capture...")
 dma_wr(S2MM_DMACR, 0x4)
 dma_wr(MM2S_DMACR, 0x4)
@@ -169,38 +164,33 @@ time.sleep(0.01)
 dma_wr(S2MM_DMACR, 0x1)
 dma_wr(MM2S_DMACR, 0x1)
 
+# start S2MM
 dma_wr(S2MM_DA, RX_BUF_ADDR)
 dma_wr(S2MM_LENGTH, transfer_len)
 
+# start MM2S
 dma_wr(MM2S_SA, TX_BUF_ADDR)
 dma_wr(MM2S_LENGTH, transfer_len)
 
 # Wait for MM2S IOC
 print("Waiting for MM2S completion...")
 while True:
-    # print("\nLive status:")
-    # print(f"step {i}: MM2S_DMASR =", hex(dma_rd(MM2S_DMASR)))
-    # time.sleep(0.1)
     if dma_rd(MM2S_DMASR) & 0x0002:
         break
     time.sleep(0.001)
 
-print("MM2S completed!")
+print("MM2S completed.")
 
-
+# Wait for S2MM IOC
 print("Waiting for S2MM completion (processed data)...")
-# wait for S2MM IOC
 while True:
-    # print("\nLive status:")
-    # print(f"step {i}: S2MM_DMASR =", hex(dma_rd(S2MM_DMASR)))
-    # time.sleep(0.1)
     if dma_rd(S2MM_DMASR) & 0x0002:
         break
     time.sleep(0.001)
 
-print("S2MM (capture) completed.")
+print("S2MM completed.")
 
-# 8) Read back processed data from DDR and send to PC via UDP
+# Read back processed data from DDR and send to PC via UDP
 print("Reading back processed data from DDR and sending to PC...")
 
 mm_rx.seek(0)
@@ -214,7 +204,7 @@ print("Last 5 values (processed):", arr_proc[-5:])
 # Send processed data back to PC
 for i in range(0, len(processed), MAX_UDP_SIZE):
     send_sock.sendto(processed[i:i + MAX_UDP_SIZE], (UDP_IP, UDP_PORT))
-    time.sleep(0.001)
+    # time.sleep(0.001)
 
 print("Processed data sent back to PC.")
 
