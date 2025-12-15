@@ -1,17 +1,18 @@
 #!/usr/bin/env python3
 import os, mmap, struct, time
 
-DMA_BASE = 0x40400000
+DMA_BASE  = 0x40400000
 AXIL_BASE = 0x40000000
 
 MAP_SIZE = 0x10000
 
 BUF_ADDR = 0x0A000000
-BUF_SIZE = 1 * 1024 * 1024  # 1 MB
+TRANSFER_SIZE = 8 * 1024 * 1024   # 8 MB = MAX for AXI DMA (23-bit LENGTH)
 
-# AXI-Lite register offsets
-AXIL_CONTROL = 0x00     # bit0 = start/enable
-AXIL_LENGTH  = 0x04     # 31:0 = transfer length
+# AXI-Lite registers
+AXIL_CONTROL = 0x00   # bit0=enable
+AXIL_LENGTH  = 0x04   # number of words
+AXIL_SEL     = 0x08   # 0=data generator, 1=external source
 
 # DMA registers
 S2MM_DMACR   = 0x30
@@ -28,7 +29,7 @@ mm_dma  = mmap.mmap(fd, MAP_SIZE, mmap.MAP_SHARED,
 mm_axil = mmap.mmap(fd, MAP_SIZE, mmap.MAP_SHARED,
                     mmap.PROT_READ | mmap.PROT_WRITE, offset=AXIL_BASE)
 
-mm_ddr = mmap.mmap(fd, BUF_SIZE, mmap.MAP_SHARED,
+mm_ddr = mmap.mmap(fd, TRANSFER_SIZE, mmap.MAP_SHARED,
                    mmap.PROT_READ | mmap.PROT_WRITE, offset=BUF_ADDR)
 
 # Helpers
@@ -41,47 +42,52 @@ def dma_rd(off):
 def axil_wr(off, val):
     struct.pack_into("<I", mm_axil, off, val)
 
-# Reset DMA
 print("Reset DMA...")
-dma_wr(S2MM_DMACR, 0x4)
+dma_wr(S2MM_DMACR, 0x4)  # reset
 time.sleep(0.01)
-dma_wr(S2MM_DMACR, 0x1)
+dma_wr(S2MM_DMACR, 0x1)  # run
 
-# Configure AXI-Lite
-transfer_len = BUF_SIZE
+print("Configuring AXI-lite registers...")
 
-print(f"Set LENGTH to = {transfer_len} AXI-Lite...")
-axil_wr(AXIL_LENGTH, transfer_len)
+# 1) SEL = 0
+print("Setting SEL = 0 (data generator)")
+axil_wr(AXIL_SEL, 0)
 
-print("Set ENABLE/START = 1 AXI-Lite...")
-axil_wr(AXIL_CONTROL, 1)        # bit0 = START=1
+# 2) LENGTH = number of words
+num_words = TRANSFER_SIZE // 4
+print(f"Setting LENGTH = {num_words} words")
+axil_wr(AXIL_LENGTH, num_words)
 
-# Run DMA
+# 3) ENABLE = 1
+print("ENABLE=1")
+axil_wr(AXIL_CONTROL, 1)
+
+# -------------------------------
+print("Starting DMA S2MM...")
 dma_wr(S2MM_DA, BUF_ADDR)
-dma_wr(S2MM_LENGTH, transfer_len)
+dma_wr(S2MM_LENGTH, TRANSFER_SIZE)
 
-print("Waiting for DMA...")
+# Wait for DMA completion
 while True:
-    if dma_rd(S2MM_DMASR) & 0x0002:
+    if dma_rd(S2MM_DMASR) & 0x2:   # IOC_Irq
         break
     time.sleep(0.001)
 
-print("Transfer completed")
+print("DMA transfer completed.")
 
-# Disable START after transfer
-print("Set ENABLE/START = 0 AXI-Lite...")
+# Disable enable
 axil_wr(AXIL_CONTROL, 0)
+print("ENABLE=0")
 
-# Read sample data
-print("First 16 words:")
+# Show first and last samples
+print("\nFirst 16 words:")
 for i in range(0, 64, 4):
     print(struct.unpack_from("<I", mm_ddr, i)[0])
 
 print("\nLast 16 words:")
-for i in range(transfer_len - 64, transfer_len, 4):
+for i in range(TRANSFER_SIZE - 64, TRANSFER_SIZE, 4):
     print(struct.unpack_from("<I", mm_ddr, i)[0])
 
-# Cleanup
 mm_dma.close()
 mm_axil.close()
 mm_ddr.close()

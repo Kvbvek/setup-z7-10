@@ -6,15 +6,6 @@
 *.xsa
 hw/zybo-agh
 
-# Vitis files, dirs
-vitis_workspace/
-*.build_log
-*.vitis_log
-.metadata/
-.sdk/
-
 # Yocto files, dirs
 sw/arm/build
 *.log
-sw/arm/vitis/.analytics
-sw/arm/vitis/Remote*

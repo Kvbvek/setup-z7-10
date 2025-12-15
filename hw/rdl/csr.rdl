@@ -1,4 +1,5 @@
 addrmap csr {
+
     reg {
         name = "data_generator enable register";
 
@@ -18,4 +19,5 @@ addrmap csr {
         } length[31:0] = 0;
 
     } DG_LENGTH @ 0x04;
+
 };
