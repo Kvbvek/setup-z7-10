@@ -26,9 +26,9 @@ Skrypty należy wywoływać z folderu _tools_
 
 Pierwszym etapem było stworzenie projektu sprzętowego.
 
-## **Block design:**
+<!-- ## **Block design:**
 
-![Block design screenshot](https://i.imgur.com/mGzRUkz.png)
+![Block design screenshot](https://i.imgur.com/mGzRUkz.png) -->
 
 ## 2. Konfiguracja i budowanie obrazu systemu z użyciem Yocto/poky
 
@@ -79,12 +79,11 @@ Przykładowa ścieżka do pliku .wic - _/home/jakub/zybo-os/src/build/tmp/deploy
 Skrypt do kopiowania _.wic_ na kartę SD - _tools/flash_wic_to_sd.sh_
 
 ## 4. Komunikacja i testowanie
-Ostatecznym celem było przesłanie danych z PL do komputera PC.
 * Skrypt na Zybo (_data_udp_tx.py_)
 * Skrypt na PC (_data_udp_rx.py_) 
 
-## Działanie aplikacji:
+<!-- ## Działanie aplikacji:
 
 W celu przeprowadzenia większych transferów niż np. 100MB czy 1GB potrzebne będą modyfikację ponieważ length buffer w AXI DMA jest ustawiany na 2^26 czyli około 64MB, co jest maksymalną wartością. Transfer w jednym "rzucie" będzie niemożliwy i trzeba by np. rozwinąć projekt w Vivado aby większe ilości danych pakował w transfery po max ~64MB.
 
-![Działanie projektu](https://i.imgur.com/kKNU5jt.png)
+![Działanie projektu](https://i.imgur.com/kKNU5jt.png) -->
