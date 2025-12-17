@@ -34,7 +34,6 @@ always @(posedge ACLK) begin
             M_AXIS_TVALID <= 1;
         end 
         else if (!M_AXIS_TREADY && M_AXIS_TVALID) begin
-            // trzymaj VALID i LAST oraz DATA
             M_AXIS_TVALID <= 1;
             M_AXIS_TLAST  <= M_AXIS_TLAST;
             M_AXIS_TDATA  <= M_AXIS_TDATA;

@@ -9,8 +9,8 @@ module axis_data_generator #
 )
 (
     // NEW:
-    input wire enable,                   // enable
-    input wire [31:0] length,       // ILOŚĆ DANYCH DO WYSŁANIA
+    input wire enable,
+    input wire [31:0] length,
 
     input wire  M_AXIS_ACLK,
     input wire  M_AXIS_ARESETN,
@@ -27,8 +27,6 @@ module axis_data_generator #
     input wire  M_AXIS_TREADY
 );
 
-    // usuwamy stałą liczbę słów
-    // lokalny licznik bitów do adresowania
     function integer clogb2 (input integer bit_depth);
       begin
         for(clogb2=0; bit_depth>0; clogb2=clogb2+1)
@@ -64,18 +62,14 @@ module axis_data_generator #
     reg  tx_done;
 
 
-    // -------------------------
     // OUTPUT ASSIGNMENTS
-    // -------------------------
     assign M_AXIS_TVALID = enable ? axis_tvalid_delay : 1'b0;
     assign M_AXIS_TDATA  = stream_data_out;
     assign M_AXIS_TLAST  = axis_tlast_delay;
     assign M_AXIS_TSTRB  = {(C_M_AXIS_TDATA_WIDTH/8){1'b1}};
 
 
-    // -------------------------
     // FSM
-    // -------------------------
     always @(posedge M_AXIS_ACLK)
     begin
         if (!M_AXIS_ARESETN) begin
@@ -109,9 +103,7 @@ module axis_data_generator #
     end
 
 
-    // -------------------------
     // AXIS TVALID + TLAST
-    // -------------------------
     assign axis_tvalid = (mst_exec_state == SEND_STREAM) &&
                          (read_pointer < length);
 
@@ -132,9 +124,7 @@ module axis_data_generator #
     end
 
 
-    // -------------------------
     // READ POINTER + TX_DONE
-    // -------------------------
     always @(posedge M_AXIS_ACLK)
     begin
         if (!M_AXIS_ARESETN) begin
@@ -159,15 +149,11 @@ module axis_data_generator #
     end
 
 
-    // -------------------------
     // TX ENABLE
-    // -------------------------
     assign tx_en = M_AXIS_TREADY && axis_tvalid;
 
 
-    // -------------------------
     // OUTPUT DATA GENERATION
-    // -------------------------
     always @(posedge M_AXIS_ACLK)
     begin
         if (!M_AXIS_ARESETN)
