@@ -92,6 +92,8 @@ def recv_exact(sock, size, label):
         got += n
     return buf
 
+# --------------------------------------------------------------
+
 # 1) GENERATOR → DDR
 sw_wr(SWITCH_MUX, SWITCH_GEN_SRC)
 sw_wr(SWITCH_COMMIT, SWITCH_COMMIT_WRITE)
@@ -120,27 +122,35 @@ data = mm_rx.read(BUF_SIZE)
 MAX_UDP_SIZE = 1400
 for i in range(0, BUF_SIZE, MAX_UDP_SIZE):
     send_sock.sendto(data[i:i+MAX_UDP_SIZE], (UDP_IP, UDP_PORT))
-    if i % (1024*1024) == 0:
+    if i % (1_000_000) == 0:
         time.sleep(0.001)
 
 print("Generated data sent to PC")
+
+# --------------------------------------------------------------
+
+# MAX_UDP_SIZE = 1400
 
 rx_buf = recv_exact(recv_sock, BUF_SIZE, "Full")
 
 print("Full buffer received from PC")
 
+t_bef_mm = time.perf_counter()
+
 # 4) DDR → PL → DDR (MM2S + S2MM)
 mm_tx.seek(0)
 mm_tx.write(rx_buf)
 os.sync()
-time.sleep(0.01)
+time.sleep(0.001)
 
 sw_wr(SWITCH_MUX, SWITCH_MOD_SRC)
 sw_wr(SWITCH_COMMIT, SWITCH_COMMIT_WRITE)
 
 dma_wr(S2MM_DMACR, 0x4)
 dma_wr(MM2S_DMACR, 0x4)
-time.sleep(0.01)
+time.sleep(0.001)
+
+t_mem_to_pl_start = time.perf_counter()
 
 dma_wr(S2MM_DMACR, 0x1)
 dma_wr(MM2S_DMACR, 0x1)
@@ -157,18 +167,40 @@ while not (dma_rd(MM2S_DMASR) & 0x0002):
 while not (dma_rd(S2MM_DMASR) & 0x0002):
     time.sleep(0.001)
 
+t_mem_to_pl_end = time.perf_counter()
+
 print("DMA processing done")
 
 # 5) SEND PROCESSED DATA → PC
 mm_rx.seek(0)
 processed = mm_rx.read(BUF_SIZE)
 
+t_aft_mm = time.perf_counter()
+
 for i in range(0, BUF_SIZE, MAX_UDP_SIZE):
     send_sock.sendto(processed[i:i+MAX_UDP_SIZE], (UDP_IP, UDP_PORT))
-    if i % (1024*1024) == 0:
+    if i % (1_000_000) == 0:
         time.sleep(0.001)
 
 print("Processed data sent to PC")
+
+# ===================== RESULT =====================
+elapsed = t_mem_to_pl_end - t_mem_to_pl_start
+throughput = (BUF_SIZE / elapsed) / 1_000_000
+
+print("\n===== MM2S -> PL -> S2MM TIMING =====")
+print(f"MM2S -> PL -> S2MM time : {elapsed:.6f} s")
+print(f"MM2S -> PL -> S2MM time : {elapsed*1000:.2f} ms")
+print(f"Effective throughput: {throughput:.1f} MB/s")
+print("======================================\n")
+
+elapsed_2 = t_aft_mm - t_bef_mm
+# throughput = (BUF_SIZE / elapsed) / 1_000_000
+# print(f"Effective throughput: {throughput:.1f} MB/s")
+print("\n===== DDR write -> MM2S -> PL -> S2MM -> DDR read TIMING =====")
+print(f"DDR write -> MM2S -> PL -> S2MM -> DDR read time : {elapsed_2:.6f} s")
+print(f"DDR write -> MM2S -> PL -> S2MM -> DDR read time : {elapsed_2*1000:.2f} ms")
+print("======================================\n")
 
 # Cleanup
 mm_dma.close()
