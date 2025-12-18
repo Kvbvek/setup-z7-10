@@ -1,13 +1,11 @@
 #!/usr/bin/env python3
 import os, mmap, struct, time, socket
-import numpy as np
 
 # DMA / DDR
 DMA_BASE = 0x40400000
 MAP_SIZE = 0x10000
 
 BUF_SIZE  = 64000000
-# HALF_SIZE = BUF_SIZE // 2
 
 TX_BUF_ADDR = 0x08000000
 RX_BUF_ADDR = 0x18000000
@@ -23,18 +21,9 @@ MM2S_DMASR   = 0x04
 MM2S_SA      = 0x18
 MM2S_LENGTH  = 0x28
 
-# AXI-Lite
-AXIL_BASE    = 0x40000000
-AXIL_CONTROL = 0x00
-AXIL_LENGTH  = 0x04
-
-# AXI Switch
-SWITCH_BASE    = 0x43C00000
-SWITCH_COMMIT  = 0x00
-SWITCH_COMMIT_WRITE = 0x2
-SWITCH_MUX     = 0x40
-SWITCH_GEN_SRC = 0x0
-SWITCH_MOD_SRC = 0x1
+# CSR
+CSR_BASE    = 0x40000000
+CSR_INCREMENT = 0x00
 
 # UDP
 UDP_IP   = "192.168.3.1"
@@ -44,8 +33,8 @@ send_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 recv_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
 recv_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-recv_sock.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, BUF_SIZE)
-send_sock.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, BUF_SIZE)
+recv_sock.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, BUF_SIZE*4)
+send_sock.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, BUF_SIZE*4)
 
 recv_sock.bind(("0.0.0.0", UDP_PORT))
 recv_sock.settimeout(200.0)
@@ -57,16 +46,13 @@ mm_dma = mmap.mmap(fd, MAP_SIZE, mmap.MAP_SHARED,
                    mmap.PROT_READ | mmap.PROT_WRITE, offset=DMA_BASE)
 
 mm_axil = mmap.mmap(fd, MAP_SIZE, mmap.MAP_SHARED,
-                    mmap.PROT_READ | mmap.PROT_WRITE, offset=AXIL_BASE)
+                    mmap.PROT_READ | mmap.PROT_WRITE, offset=CSR_BASE)
 
 mm_tx = mmap.mmap(fd, BUF_SIZE, mmap.MAP_SHARED,
                   mmap.PROT_READ | mmap.PROT_WRITE, offset=TX_BUF_ADDR)
 
 mm_rx = mmap.mmap(fd, BUF_SIZE, mmap.MAP_SHARED,
                   mmap.PROT_READ | mmap.PROT_WRITE, offset=RX_BUF_ADDR)
-
-mm_sw = mmap.mmap(fd, MAP_SIZE, mmap.MAP_SHARED,
-                  mmap.PROT_READ | mmap.PROT_WRITE, offset=SWITCH_BASE)
 
 # Helpers
 def dma_wr(off, val):
@@ -78,73 +64,57 @@ def dma_rd(off):
 def axil_wr(off, val):
     struct.pack_into("<I", mm_axil, off, val)
 
-def sw_wr(off, val):
-    struct.pack_into("<I", mm_sw, off, val)
-
-def recv_exact(sock, size, label):
-    buf = bytearray(size)
+def recv_exact_into(sock, mm, size, label=""):
+    view = memoryview(mm)
     got = 0
-    print(f"Receiving {label} ({size} bytes)")
+    print(f"Receiving {label} ({size} bytes) directly to DDR")
     while got < size:
-        data, _ = sock.recvfrom(65535)
-        n = min(len(data), size - got)
-        buf[got:got+n] = data[:n]
+        n = sock.recv_into(view[got:], size - got)
         got += n
-    return buf
 
-# --------------------------------------------------------------
-
-# 1) GENERATOR → DDR
-sw_wr(SWITCH_MUX, SWITCH_GEN_SRC)
-sw_wr(SWITCH_COMMIT, SWITCH_COMMIT_WRITE)
-
-dma_wr(S2MM_DMACR, 0x4)
-time.sleep(0.01)
-dma_wr(S2MM_DMACR, 0x1)
-
-dma_wr(S2MM_DA, RX_BUF_ADDR)
-
-axil_wr(AXIL_LENGTH, BUF_SIZE // 4)
-axil_wr(AXIL_CONTROL, 1)
-
-dma_wr(S2MM_LENGTH, BUF_SIZE)
-
-while not (dma_rd(S2MM_DMASR) & 0x0002):
-    time.sleep(0.001)
-
-axil_wr(AXIL_CONTROL, 0)
-print("Initial S2MM done")
-
-# 2) SEND GENERATED DATA → PC
-mm_rx.seek(0)
-data = mm_rx.read(BUF_SIZE)
+# def recv_exact(sock, size, label):
+#     buf = bytearray(size)
+#     got = 0
+#     print(f"Receiving {label} ({size} bytes)")
+#     while got < size:
+#         data, _ = sock.recvfrom(65535)
+#         n = min(len(data), size - got)
+#         buf[got:got+n] = data[:n]
+#         got += n
+#     return buf
 
 MAX_UDP_SIZE = 1400
-for i in range(0, BUF_SIZE, MAX_UDP_SIZE):
-    send_sock.sendto(data[i:i+MAX_UDP_SIZE], (UDP_IP, UDP_PORT))
-    if i % (1_000_000) == 0:
-        time.sleep(0.001)
 
-print("Generated data sent to PC")
+print("Receiving data from PC...")
 
-# --------------------------------------------------------------
-
-# MAX_UDP_SIZE = 1400
-
-rx_buf = recv_exact(recv_sock, BUF_SIZE, "Full")
+mm_tx.seek(0)
+recv_exact_into(recv_sock, mm_tx, BUF_SIZE, "Full buffer")
 
 print("Full buffer received from PC")
 
 t_bef_mm = time.perf_counter()
 
-# 4) DDR → PL → DDR (MM2S + S2MM)
-mm_tx.seek(0)
-mm_tx.write(rx_buf)
-os.sync()
-time.sleep(0.001)
+# DDR → PL → DDR (MM2S + S2MM)
+# print("Writing data to DDR...")
+# mm_tx.seek(0)
+# mm_tx.write(rx_buf)
+# os.sync()
+# time.sleep(0.001)
 
-sw_wr(SWITCH_MUX, SWITCH_MOD_SRC)
-sw_wr(SWITCH_COMMIT, SWITCH_COMMIT_WRITE)
+# rx_buf = recv_exact(recv_sock, BUF_SIZE, "Full")
+
+# print("Full buffer received from PC")
+
+# t_bef_mm = time.perf_counter()
+
+# # 4) DDR → PL → DDR (MM2S + S2MM)
+# mm_tx.seek(0)
+# mm_tx.write(rx_buf)
+# os.sync()
+# time.sleep(0.001)
+
+print("Setting increment value...")
+axil_wr(CSR_INCREMENT, 0xA)
 
 dma_wr(S2MM_DMACR, 0x4)
 dma_wr(MM2S_DMACR, 0x4)
@@ -161,6 +131,8 @@ dma_wr(S2MM_LENGTH, BUF_SIZE)
 dma_wr(MM2S_SA, TX_BUF_ADDR)
 dma_wr(MM2S_LENGTH, BUF_SIZE)
 
+print("Processing data...")
+
 while not (dma_rd(MM2S_DMASR) & 0x0002):
     time.sleep(0.001)
 
@@ -169,9 +141,9 @@ while not (dma_rd(S2MM_DMASR) & 0x0002):
 
 t_mem_to_pl_end = time.perf_counter()
 
-print("DMA processing done")
+print("Processing done")
 
-# 5) SEND PROCESSED DATA → PC
+# SEND PROCESSED DATA → PC
 mm_rx.seek(0)
 processed = mm_rx.read(BUF_SIZE)
 
@@ -179,8 +151,8 @@ t_aft_mm = time.perf_counter()
 
 for i in range(0, BUF_SIZE, MAX_UDP_SIZE):
     send_sock.sendto(processed[i:i+MAX_UDP_SIZE], (UDP_IP, UDP_PORT))
-    if i % (1_000_000) == 0:
-        time.sleep(0.001)
+    # if i % (1_000_000) == 0:
+    #     time.sleep(0.001)
 
 print("Processed data sent to PC")
 
@@ -195,8 +167,6 @@ print(f"Effective throughput: {throughput:.1f} MB/s")
 print("======================================\n")
 
 elapsed_2 = t_aft_mm - t_bef_mm
-# throughput = (BUF_SIZE / elapsed) / 1_000_000
-# print(f"Effective throughput: {throughput:.1f} MB/s")
 print("\n===== DDR write -> MM2S -> PL -> S2MM -> DDR read TIMING =====")
 print(f"DDR write -> MM2S -> PL -> S2MM -> DDR read time : {elapsed_2:.6f} s")
 print(f"DDR write -> MM2S -> PL -> S2MM -> DDR read time : {elapsed_2*1000:.2f} ms")
@@ -207,7 +177,6 @@ mm_dma.close()
 mm_axil.close()
 mm_tx.close()
 mm_rx.close()
-mm_sw.close()
 os.close(fd)
 send_sock.close()
 recv_sock.close()
