@@ -16,7 +16,7 @@ TARGET_COUNT = BUF_SIZE // 4
 
 SOCK_BUF_SIZE = 64000000
 
-ADD_CONST = 0xF   # IP in PL adds this constant
+ADD_CONST = 0xA   # IP in PL adds this constant
 
 # -------------------------------------------------------------
 def verify_data(arr):
@@ -64,16 +64,16 @@ recv_sock.settimeout(50.0)
 send_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 send_sock.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, SOCK_BUF_SIZE)
 
-buffer = receive_buffer(
-    recv_sock,
-    TARGET_COUNT,
-    MAX_PACKET_SIZE,
-    label="Initial buffer"
-)
+# buffer = receive_buffer(
+#     recv_sock,
+#     TARGET_COUNT,
+#     MAX_PACKET_SIZE,
+#     label="Initial buffer"
+# )
 
 # 1) GENERATE DATA LOCALLY (0 .. 15999999)
-# print("Generating test data locally...")
-# buffer = np.arange(TARGET_COUNT, dtype=np.uint32)
+print("Generating test data locally...")
+buffer = np.arange(TARGET_COUNT, dtype=np.uint32)
 
 print("Initial first 5:", buffer[:5])
 print("Initial last 5 :", buffer[-5:])
@@ -94,7 +94,7 @@ while sent < BUF_SIZE:
     chunk = raw[sent:sent + MAX_UDP_SIZE]
     send_sock.sendto(chunk, (FPGA_IP, UDP_PORT))
     sent += len(chunk)
-    time.sleep(0.00003)
+    time.sleep(0.000001)
 
 print("Full buffer sent to FPGA")
 
