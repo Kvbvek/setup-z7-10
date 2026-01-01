@@ -72,17 +72,6 @@ def recv_exact_into(sock, mm, size, label=""):
         n = sock.recv_into(view[got:], size - got)
         got += n
 
-# def recv_exact(sock, size, label):
-#     buf = bytearray(size)
-#     got = 0
-#     print(f"Receiving {label} ({size} bytes)")
-#     while got < size:
-#         data, _ = sock.recvfrom(65535)
-#         n = min(len(data), size - got)
-#         buf[got:got+n] = data[:n]
-#         got += n
-#     return buf
-
 MAX_UDP_SIZE = 1400
 
 print("Receiving data from PC...")
@@ -92,38 +81,17 @@ recv_exact_into(recv_sock, mm_tx, BUF_SIZE, "Full buffer")
 
 print("Full buffer received from PC")
 
-t_bef_mm = time.perf_counter()
-
-# DDR → PL → DDR (MM2S + S2MM)
-# print("Writing data to DDR...")
-# mm_tx.seek(0)
-# mm_tx.write(rx_buf)
-# os.sync()
-# time.sleep(0.001)
-
-# rx_buf = recv_exact(recv_sock, BUF_SIZE, "Full")
-
-# print("Full buffer received from PC")
-
-# t_bef_mm = time.perf_counter()
-
-# # 4) DDR → PL → DDR (MM2S + S2MM)
-# mm_tx.seek(0)
-# mm_tx.write(rx_buf)
-# os.sync()
-# time.sleep(0.001)
-
 print("Setting increment value...")
-axil_wr(CSR_INCREMENT, 0xA)
+axil_wr(CSR_INCREMENT, 1000000)
 
 dma_wr(S2MM_DMACR, 0x4)
 dma_wr(MM2S_DMACR, 0x4)
 time.sleep(0.001)
 
-t_mem_to_pl_start = time.perf_counter()
-
 dma_wr(S2MM_DMACR, 0x1)
 dma_wr(MM2S_DMACR, 0x1)
+
+t_mem_to_pl_start = time.perf_counter()
 
 dma_wr(S2MM_DA, RX_BUF_ADDR)
 dma_wr(S2MM_LENGTH, BUF_SIZE)
@@ -144,15 +112,11 @@ t_mem_to_pl_end = time.perf_counter()
 print("Processing done")
 
 # SEND PROCESSED DATA → PC
-mm_rx.seek(0)
-processed = mm_rx.read(BUF_SIZE)
 
-t_aft_mm = time.perf_counter()
+view = memoryview(mm_rx)
 
 for i in range(0, BUF_SIZE, MAX_UDP_SIZE):
-    send_sock.sendto(processed[i:i+MAX_UDP_SIZE], (UDP_IP, UDP_PORT))
-    # if i % (1_000_000) == 0:
-    #     time.sleep(0.001)
+    send_sock.sendto(view[i:i+MAX_UDP_SIZE], (UDP_IP, UDP_PORT))
 
 print("Processed data sent to PC")
 
@@ -162,15 +126,12 @@ throughput = (BUF_SIZE / elapsed) / 1_000_000
 
 print("\n===== MM2S -> PL -> S2MM TIMING =====")
 print(f"MM2S -> PL -> S2MM time : {elapsed:.6f} s")
-print(f"MM2S -> PL -> S2MM time : {elapsed*1000:.2f} ms")
-print(f"Effective throughput: {throughput:.1f} MB/s")
+print(f"MM2S -> PL -> S2MM time : {elapsed*1000:.3f} ms")
+print(f"Effective throughput: {throughput:.3f} MB/s")
 print("======================================\n")
 
-elapsed_2 = t_aft_mm - t_bef_mm
-print("\n===== DDR write -> MM2S -> PL -> S2MM -> DDR read TIMING =====")
-print(f"DDR write -> MM2S -> PL -> S2MM -> DDR read time : {elapsed_2:.6f} s")
-print(f"DDR write -> MM2S -> PL -> S2MM -> DDR read time : {elapsed_2*1000:.2f} ms")
-print("======================================\n")
+view.release()
+del view
 
 # Cleanup
 mm_dma.close()
