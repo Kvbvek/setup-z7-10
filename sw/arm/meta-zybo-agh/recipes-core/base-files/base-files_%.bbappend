@@ -1,7 +1,9 @@
 FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
 
-SRC_URI += "file://99-udp-buffer.conf"
-SRC_URI += "file://10-end0.network"
+SRC_URI:append = " \
+    file://99-udp-buffer.conf \
+    file://10-end0.network \
+"
 
 do_install:append() {
     install -d ${D}${sysconfdir}/sysctl.d

@@ -11,16 +11,8 @@ S = "${WORKDIR}"
  
 FILES:${PN} += "/boot/fpga.bin"
  
-inherit deploy
- 
 do_install() {
     install -d ${D}/boot
     install -m 0644 ${S}/fpga.bin ${D}/boot/
 }
  
-do_deploy() {
-    install -d ${DEPLOYDIR}
-    install -m 0644 ${S}/fpga.bin ${DEPLOYDIR}/
-}
- 
-addtask deploy before do_build after do_install
