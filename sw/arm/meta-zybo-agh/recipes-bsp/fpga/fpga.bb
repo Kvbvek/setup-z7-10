@@ -7,12 +7,10 @@ SRC_URI := " \
     file://fpga.bin \
 "
  
-S = "${WORKDIR}"
- 
 FILES:${PN} += "/boot/fpga.bin"
  
 do_install() {
     install -d ${D}/boot
-    install -m 0644 ${S}/fpga.bin ${D}/boot/
+    install -m 0644 ${WORKDIR}/fpga.bin ${D}/boot/
 }
  

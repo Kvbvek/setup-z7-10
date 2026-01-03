@@ -82,7 +82,7 @@ recv_exact_into(recv_sock, mm_tx, BUF_SIZE, "Full buffer")
 print("Full buffer received from PC")
 
 print("Setting increment value...")
-axil_wr(CSR_INCREMENT, 1000000)
+axil_wr(CSR_INCREMENT, 1000)
 
 dma_wr(S2MM_DMACR, 0x4)
 dma_wr(MM2S_DMACR, 0x4)
@@ -91,24 +91,24 @@ time.sleep(0.001)
 dma_wr(S2MM_DMACR, 0x1)
 dma_wr(MM2S_DMACR, 0x1)
 
-t_mem_to_pl_start = time.perf_counter()
-
 dma_wr(S2MM_DA, RX_BUF_ADDR)
 dma_wr(S2MM_LENGTH, BUF_SIZE)
 
 dma_wr(MM2S_SA, TX_BUF_ADDR)
 dma_wr(MM2S_LENGTH, BUF_SIZE)
 
-print("Processing data...")
+t_mem_to_pl_start = time.perf_counter()
+# print("Processing data...")
 
-while not (dma_rd(MM2S_DMASR) & 0x0002):
-    time.sleep(0.001)
-
-while not (dma_rd(S2MM_DMASR) & 0x0002):
-    time.sleep(0.001)
+while(True):
+    if(dma_rd(MM2S_DMASR) & 0x0002):
+        break
+while(True):
+    if(dma_rd(S2MM_DMASR) & 0x0002):
+        break
 
 t_mem_to_pl_end = time.perf_counter()
-
+time.sleep(0.00001)
 print("Processing done")
 
 # SEND PROCESSED DATA → PC
