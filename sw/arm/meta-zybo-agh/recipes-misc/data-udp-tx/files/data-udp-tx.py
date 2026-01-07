@@ -5,7 +5,7 @@ import os, mmap, struct, time, socket
 DMA_BASE = 0x40400000
 MAP_SIZE = 0x10000
 
-BUF_SIZE  = 64000000
+BUF_SIZE  = 40000*1472
 
 TX_BUF_ADDR = 0x08000000
 RX_BUF_ADDR = 0x18000000
@@ -72,7 +72,7 @@ def recv_exact_into(sock, mm, size, label=""):
         n = sock.recv_into(view[got:], size - got)
         got += n
 
-MAX_UDP_SIZE = 1400
+MAX_UDP_SIZE = 1472*44
 
 print("Receiving data from PC...")
 
@@ -86,7 +86,7 @@ axil_wr(CSR_INCREMENT, 1000)
 
 dma_wr(S2MM_DMACR, 0x4)
 dma_wr(MM2S_DMACR, 0x4)
-time.sleep(0.001)
+time.sleep(0.000001)
 
 dma_wr(S2MM_DMACR, 0x1)
 dma_wr(MM2S_DMACR, 0x1)
